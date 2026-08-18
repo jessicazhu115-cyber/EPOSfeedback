@@ -351,7 +351,7 @@ textarea{resize:vertical;min-height:60px}
 // 请把下面这行换成你自己部署的 Google Apps Script 网址
 // (部署步骤见附带的 Code.gs 文件顶部注释)
 // ============================================
-const SCRIPT_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnRQGccQvJVddBP20bgurosDC2Bn6CYqjmDL57z9b4leuSpoYDx9l-5pPy3j0Q_DVsB__7EwvxwocpbvhHDyK9bpDHyAWW8pBx5XZ4_OxW7M3o-ncEK0M9mqmUw0YcWRjJLPartmrAOgEv0wxqk2rINhZyRCpNk3g5F_XHHk0wFaME5LJL3yae44m_oO84kTLdzgRjXMA3pv5uMTIuSa288gENSXVd13uNJkFUfzQ_LXHZicKnsm1RSaI70BHzd5GETuXRKNUE9r26zfh8x0VmNLdlhQLw&lib=MwpBQaXaWunuKHCohR_eMz-NK5AC04NqH';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwGpEvklBhb_sSBOtv7F0JmKX4B9kXQy1s1tOHcYtYDnoQQ7ug2GLnziyAJ5Iq0eBRG/exec';
 
 const npsG=document.getElementById('g_nps');
 for(let i=0;i<=10;i++){const b=document.createElement('button');b.className='nps-btn';b.textContent=i;b.onclick=()=>{npsG.querySelectorAll('.nps-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');npsG.dataset.val=i;};npsG.appendChild(b);}
