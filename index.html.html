@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EPOS Customer Feedback | 客户反馈收集</title>
+<style>
+:root{
+  --primary:#1677ff;--primary-dark:#0958d9;--primary-light:#e8f3ff;
+  --teal:#0fc6c2;--teal-dark:#08979c;
+  --bg:#f0f5fa;--card:#fff;
+  --text:#1f2329;--text-2:#4e5969;--text-3:#86909c;--border:#e5e6eb;
+  --success:#00b42a;--warn:#ff7d00;--danger:#f53f3f;--radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;font-size:15px}
+.container{max-width:760px;margin:0 auto;padding:24px 16px 80px}
+.header{text-align:center;padding:32px 16px 24px;background:linear-gradient(135deg,#1677ff 0%,#0fc6c2 100%);color:#fff;border-radius:var(--radius);margin-bottom:20px;box-shadow:0 6px 20px rgba(15,198,194,.25)}
+.header h1{font-size:24px;margin-bottom:6px;font-weight:700}
+.header p{font-size:13px;opacity:.92}
+.header .lang{margin-top:10px;font-size:12px;opacity:.85}
+.incentive-banner{background:linear-gradient(135deg,#fff7e6 0%,#fff1f0 100%);border:2px solid #ffd591;border-radius:var(--radius);padding:20px;margin-bottom:20px;box-shadow:0 4px 12px rgba(255,213,145,.3)}
+.incentive-banner h2{font-size:16px;color:#d46b08;margin-bottom:12px;text-align:center}
+.incentive-banner .prizes{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}
+.incentive-banner .prize{background:#fff;border:1px solid #ffd591;border-radius:10px;padding:10px 14px;font-size:13px;text-align:center;flex:1;min-width:120px}
+.incentive-banner .prize b{display:block;font-size:18px;color:#d46b08;margin-bottom:2px}
+.incentive-banner .prize small{color:var(--text-3);font-size:11px}
+.incentive-banner .rules{font-size:12px;color:#874d00;line-height:1.7;padding-top:10px;border-top:1px dashed #ffd591}
+.incentive-banner .penalty{background:#fff2f0;border:1px solid #ffccc7;border-radius:8px;padding:10px 12px;margin-top:8px;font-size:12px;color:#cf1322;line-height:1.7}
+.incentive-banner .penalty b{color:#a8071a}
+.tabs{display:flex;gap:6px;background:var(--card);padding:6px;border-radius:var(--radius);box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:20px;overflow-x:auto}
+.tab{flex:1;min-width:120px;padding:12px 8px;text-align:center;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-2);transition:all .2s;border:none;background:transparent;white-space:nowrap}
+.tab.active{background:var(--primary);color:#fff;box-shadow:0 3px 8px rgba(22,119,255,.3)}
+.tab:hover:not(.active){background:#f2f3f5}
+.card{background:var(--card);border-radius:var(--radius);padding:28px 24px;box-shadow:0 2px 12px rgba(0,0,0,.05);margin-bottom:20px}
+.card-title{font-size:17px;font-weight:700;margin-bottom:4px;color:var(--text)}
+.card-sub{font-size:12px;color:var(--text-3);margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-2)}
+.form-group label .req{color:var(--danger);margin-left:3px}
+.form-group label .opt{color:var(--text-3);font-weight:400;font-size:11px;margin-left:4px}
+.form-group .hint{font-size:11px;color:var(--text-3);font-weight:400;margin-top:4px}
+.form-group.dynamic{display:none}
+input[type=text],input[type=number],input[type=tel],textarea,select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:var(--text);transition:border-color .2s}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(22,119,255,.12)}
+textarea{resize:vertical;min-height:60px}
+.radio-group,.check-group{display:flex;flex-wrap:wrap;gap:8px}
+.radio-item,.check-item{display:inline-flex;align-items:center;padding:8px 14px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:13px;transition:all .15s;background:#fff;user-select:none}
+.radio-item:hover,.check-item:hover{border-color:var(--primary);color:var(--primary)}
+.radio-item.selected,.check-item.selected{background:var(--primary);border-color:var(--primary);color:#fff}
+.radio-item.disabled,.check-item.disabled{opacity:.35;cursor:not-allowed;pointer-events:none;background:#f5f5f5;border-color:var(--border);color:var(--text-3)}
+.opt-trial{display:none}
+.nps-group{display:flex;flex-wrap:wrap;gap:6px}
+.nps-btn{width:38px;height:38px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:14px;font-weight:600;transition:all .15s}
+.nps-btn:hover{border-color:var(--primary)}
+.nps-btn.selected{background:var(--primary);color:#fff;border-color:var(--primary)}
+.nps-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-top:6px}
+.section-divider{font-size:13px;font-weight:700;color:var(--teal-dark);margin:22px 0 14px;padding-bottom:6px;border-bottom:2px solid var(--primary-light)}
+.submit-btn{width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s;margin-top:8px}
+.submit-btn:hover{background:var(--primary-dark)}
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-100px);background:var(--success);color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;box-shadow:0 6px 20px rgba(0,180,42,.3);transition:transform .3s;z-index:999}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.actions{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.btn-sm{padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:12px;color:var(--text-2);transition:all .15s}
+.btn-sm:hover{border-color:var(--primary);color:var(--primary)}
+.records{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.05);margin-top:8px}
+.records h3{font-size:14px;margin-bottom:12px;color:var(--text-2)}
+.record-item{padding:10px 12px;background:var(--bg);border-radius:8px;margin-bottom:8px;font-size:12px}
+.record-item b{color:var(--primary)}
+.empty{text-align:center;color:var(--text-3);font-size:13px;padding:20px}
+.form-section{display:none}
+.form-section.active{display:block}
+.counter{font-size:11px;color:var(--text-3);float:right;font-weight:400}
+@media(max-width:600px){.header h1{font-size:20px}.card{padding:20px 16px}.tab{font-size:12px;min-width:100px}.incentive-banner .prize{min-width:100px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <img src="data:image/png;base64,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" alt="EPOS Logo" style="height:48px;width:auto;margin-bottom:8px;background:#fff;padding:4px 10px;border-radius:8px">
+    <h1>客户反馈收集 Customer Feedback</h1>
+    <p>BD / Ops / CS 全员一线收集 · www.epos.com</p>
+    <div class="lang">Bilingual 中英双语 · Malaysia & Singapore</div>
+  </div>
+
+  <!-- 奖惩制度置顶 -->
+  <div class="incentive-banner">
+    <h2>🏆 月度反馈竞赛 · 奖惩制度 / Monthly Feedback Contest & Rules</h2>
+    <div class="prizes">
+      <div class="prize">🥇 <b>500 MYR</b><small>第1名 · 1人 / 1st ×1</small></div>
+      <div class="prize">🥈 <b>200 MYR</b><small>第2名 · 3人 / 2nd ×3</small></div>
+      <div class="prize">🥉 <b>100 MYR</b><small>第3名 · 5人 / 3rd ×5</small></div>
+      <div class="prize">🌟 <b>200 MYR</b><small>质量奖 · 2人 / Quality ×2</small></div>
+    </div>
+    <div class="rules">
+      📌 <b>规则 / Rules:</b> 按有效反馈数量排名，按月发奖 · 全员统一评奖 · 有效反馈=必填完整+同商户同场景月内仅计1条 · 单人单季最多领奖2次 · SG按1 MYR≈0.30 SGD换算<br>
+      📌 <b>Ranked by valid feedback count, monthly prizes · Unified ranking for all roles · Valid = all required fields + unique merchant per scenario per month · Max 2 wins/person/quarter · SG: 1 MYR ≈ 0.30 SGD</b>
+    </div>
+    <div class="penalty">
+      ⚠️ <b>作弊处分 / Integrity Penalty:</b> 所有记录进行客户抽查回访核验。发现伪造、编造商户、虚假填报，<b>给予严重警告处分</b>；情节严重或屡教不改者，<b>可能面临解除劳动合同处理</b>，并取消当月竞赛资格、追回已获奖金。<br>
+      <b>Records are randomly verified via merchant callback. Falsified records → severe warning; serious/repeated violations may lead to termination, plus disqualification and prize clawback.</b>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-target="F">📝 反馈表单 Form</button>
+    <button class="tab" data-target="L">🏆 排行榜 Leaderboard</button>
+  </div>
+
+  <div class="form-section active" id="sec-F">
+    <div class="card">
+      <div class="card-title">客户反馈收集 / Customer Feedback Form</div>
+      <div class="card-sub">请如实填写，记录将抽查回访核验 · Fill truthfully, records will be randomly verified via callback</div>
+
+      <!-- 业务场景（仅标记，不驱动字段） -->
+      <div class="form-group">
+        <label>① 业务场景 / Scenario <span class="req">*</span></label>
+        <div class="radio-group" id="scenarioPick">
+          <span class="radio-item" data-sc="sales">销售 Sales</span>
+          <span class="radio-item" data-sc="deployment">部署 Deployment</span>
+          <span class="radio-item" data-sc="service">客服 Service</span>
+          <span class="radio-item" data-sc="other">其他 Other</span>
+        </div>
+        <div class="hint">仅标记本次反馈发生在什么场景 / Just a tag for the context</div>
+      </div>
+
+      <!-- 销售场景：购买成功/拒单（唯一区分） -->
+      <div class="form-group dynamic" data-show="sales">
+        <label>② 本次结果 / Outcome <span class="req">*</span></label>
+        <div class="radio-group" data-key="outcome" id="g_outcome">
+          <span class="radio-item">购买成功 Purchased Successfully</span><span class="radio-item">失单/拒绝 Lost/Rejected</span><span class="radio-item">跟进中 In-progress</span>
+        </div>
+        <div class="hint">选"购买成功"后，下方购买相关字段变为必填 / Selecting "Purchased Successfully" makes purchase-related fields required</div>
+      </div>
+
+      <!-- 基本信息 -->
+      <div class="section-divider">基本信息 / Basic Info</div>
+      <div class="form-group">
+        <label>商户名称 / Merchant Name <span class="req">*</span></label>
+        <input type="text" id="f_merchant" placeholder="e.g. Restaurant ABC">
+      </div>
+      <div class="form-group">
+        <label>市场 / Market <span class="req">*</span></label>
+        <div class="radio-group" data-key="market" id="g_market">
+          <span class="radio-item">MY</span><span class="radio-item">SG</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>行业 / Industry <span class="req">*</span></label>
+        <div class="radio-group" data-key="industry" id="g_industry">
+          <span class="radio-item">餐饮 F&B</span><span class="radio-item">零售 Retail</span><span class="radio-item">服务 Services</span><span class="radio-item">美业 Beauty</span><span class="radio-item">其他 Other</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>客户电话或邮箱 / Customer Phone or Email <span class="req" id="req_phone">*</span> <span class="opt" id="opt_phone"></span></label>
+        <input type="text" id="f_phone" placeholder="电话或邮箱至少填一个 / Phone or email (at least one)">
+        <div class="hint" id="hint_phone">至少填写电话或邮箱（失单可选填）/ At least phone or email (optional for lost)</div>
+      </div>
+      <div class="form-group">
+        <label>客户EPOS账号 / EPOS Account ID <span id="req_acct">*</span> <span class="opt" id="opt_acct"></span></label>
+        <input type="text" id="f_acct" placeholder="EPOS account ID (if purchased)">
+        <div class="hint" id="hint_acct">购买成功/已购买/部署场景必填，其他选填 / Required for purchase success, purchased, or deployment; optional otherwise</div>
+      </div>
+      <div class="form-group">
+        <label>填写人 / Submitter <span class="req">*</span> <span id="loginHint" style="font-size:11px;color:var(--success);font-weight:400"></span></label>
+        <input type="text" id="f_submitter" placeholder="Your name">
+      </div>
+      <div class="form-group">
+        <label>填写人角色 / Your Role <span class="req">*</span></label>
+        <div class="radio-group" data-key="role" id="g_role">
+          <span class="radio-item">BD</span><span class="radio-item">SDR</span><span class="radio-item">Ops</span><span class="radio-item">CS</span><span class="radio-item">其他 Other</span>
+        </div>
+      </div>
+
+      <!-- 核心反馈（所有场景统一） -->
+      <div class="section-divider">核心反馈 / Core Feedback</div>
+
+      <div class="form-group">
+        <label>客户从哪个渠道听说我们 / How did customer hear about us? <span class="req">*</span></label>
+        <div class="radio-group" data-key="channel" id="g_channel">
+          <span class="radio-item">YouTube</span><span class="radio-item">TIKTOK</span><span class="radio-item">小红书 Xiaohongshu</span><span class="radio-item">Google搜索 Google Search</span><span class="radio-item">EPOS官网 EPOS Website</span><span class="radio-item">Facebook·Instagram</span><span class="radio-item">朋友推荐 Referral</span><span class="radio-item">线下活动 Offline Event</span><span class="radio-item">销售上门或SDR Direct Sales/SDR</span><span class="radio-item">已用其他EPOS Existing User</span><span class="radio-item">其他 Other</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>客户是否已购买/使用我们产品 / Has customer purchased/used EPOS? <span class="req">*</span></label>
+        <div class="radio-group" data-key="purchased" id="g_purchased">
+          <span class="radio-item">已购买 Purchased</span><span class="radio-item">试用中 On Trial</span><span class="radio-item">未购买 Not Purchased</span>
+        </div>
+      </div>
+
+      <div class="form-group dynamic" data-show="purchased_yes">
+        <label>购买/使用了多久 / How long has customer purchased/used <span class="req">*</span></label>
+        <div class="radio-group" data-key="usage_duration" id="g_usage">
+          <!-- 已购买套餐选项 -->
+          <span class="radio-item opt-pkg">3 Months</span><span class="radio-item opt-pkg">6 Months</span><span class="radio-item opt-pkg">12+3 Months</span><span class="radio-item opt-pkg">24+12 Months</span><span class="radio-item opt-pkg">36+24 Months</span><span class="radio-item opt-pkg">60+60 Months</span>
+          <!-- 试用中选项（产品试用30天） -->
+          <span class="radio-item opt-trial">&lt;15 Days</span><span class="radio-item opt-trial">15-30 Days</span>
+        </div>
+        <div class="hint" id="usage_hint"></div>
+      </div>
+
+      <div class="form-group">
+        <label>客户最喜欢我们哪个功能 / Customer's favorite feature <span class="req">*</span> <span class="counter">最多3项 / max 3</span></label>
+        <div class="check-group" data-key="fav_feature" data-max="3" id="g_fav">
+          <span class="check-item">外卖 Food Delivery</span><span class="check-item">扫码点餐 Scan to Order</span><span class="check-item">在线店 Online Store</span><span class="check-item">会员 Membership</span><span class="check-item">支付 Payment</span><span class="check-item">AI</span><span class="check-item">价格 Price</span><span class="check-item">客服 Service</span><span class="check-item">无特别指定功能 No Specific</span><span class="check-item">其他 Other</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>客户最不喜欢/最希望改进 / Least favorite / most wanted improvement <span class="req">*</span> <span class="counter">最多3项 / max 3</span></label>
+        <div class="check-group" data-key="least_feature" data-max="3" id="g_least">
+          <span class="check-item">外卖 Food Delivery</span><span class="check-item">扫码点餐 Scan to Order</span><span class="check-item">在线店 Online Store</span><span class="check-item">会员 Membership</span><span class="check-item">支付 Payment</span><span class="check-item">AI</span><span class="check-item">价格 Price</span><span class="check-item">客服 Service</span><span class="check-item">无特别指定功能 No Specific</span><span class="check-item">其他 Other</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>购买/使用我们的原因 / Reason to purchase/use <span class="req" id="req_buy">*</span> <span class="opt" id="opt_buy">(已购买必填)</span> <span class="counter">最多3项 / max 3</span></label>
+        <div class="check-group" data-key="buy_reason" data-max="3" id="g_buyreason">
+          <span class="check-item">信任品牌 Brand Trust</span><span class="check-item">数字化转型 Digital Transformation</span><span class="check-item">提升效率 Efficiency</span><span class="check-item">增加营收 Revenue Growth</span><span class="check-item">功能齐全 Complete Features</span><span class="check-item">AI能力 AI</span><span class="check-item">价格可负担 Affordable</span><span class="check-item">替代现有竞品 Switch from Competitor</span><span class="check-item">一站式全包 All-in-one</span><span class="check-item">其他 Other</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>不想购买/不考虑的原因 / Reason NOT to purchase <span class="req" id="req_nobuy">*</span> <span class="opt" id="opt_nobuy">(未购买必填)</span> <span class="counter">最多3项 / max 3</span></label>
+        <div class="check-group" data-key="no_buy_reason" data-max="3" id="g_nobuy">
+          <span class="check-item">价格太高 Price Too High</span><span class="check-item">偏好竞品 Prefer Competitor</span><span class="check-item">功能不匹配 Feature Mismatch</span><span class="check-item">缺关键功能 Missing Key Feature</span><span class="check-item">功能不够全 Incomplete Features</span><span class="check-item">合规复杂 KYC/Compliance</span><span class="check-item">觉得不需要 No Need</span><span class="check-item">决策人未说服 DM Not Convinced</span><span class="check-item">实施复杂 Complex Onboarding</span><span class="check-item">信任不足 Low Trust</span><span class="check-item">其他 Other</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>客户是否推荐我们产品 / Would customer recommend EPOS? (NPS) <span class="req">*</span></label>
+        <div class="nps-group" id="g_nps"></div>
+        <div class="nps-label"><span>0 完全不推荐 Not at all</span><span>10 非常愿意推荐 Extremely likely</span></div>
+      </div>
+
+      <div class="form-group" id="fg_renewal">
+        <label>是否还愿意继续续约 / Willing to renew? <span class="opt">(选填，仅已购买/试用客户)</span></label>
+        <div class="radio-group" data-key="renewal" id="g_renewal">
+          <span class="radio-item">确定续约 Definitely Renew</span><span class="radio-item">可能续约 Likely Renew</span><span class="radio-item">不确定 Unsure</span><span class="radio-item">可能不续约 Likely Not Renew</span><span class="radio-item">不适用 N/A</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>推荐理由 / Recommend Reason <span class="opt">(选填)</span></label>
+        <textarea id="f_rec_reason" placeholder="Why would they recommend? (optional)"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>不推荐理由 / Not Recommend Reason <span class="opt">(选填)</span></label>
+        <textarea id="f_no_rec_reason" placeholder="Why would they NOT recommend? (optional)"></textarea>
+      </div>
+
+      <div class="section-divider">客户原声 / Verbatim</div>
+      <div class="form-group">
+        <label>客户原话 / Customer Verbatim <span class="opt">(选填 optional)</span></label>
+        <textarea id="f_verbatim" placeholder="一句话引用客户原话(中/英/BM) / One quote from customer"></textarea>
+        <div class="hint" style="background:linear-gradient(135deg,#fff7e6,#fff1f0);border:1px solid #ffd591;border-radius:8px;padding:10px 12px;margin-top:8px;color:#874d00">
+          🌟 <b>质量奖等你拿 / Quality Award Awaits:</b> 高质量的客户原声与真实反馈，将有机会获得<b>月度质量奖（200 MYR）</b>并被管理层看见和表彰。请如实、积极地记录客户声音——你的每一条反馈都可能被管理层看见！<br>
+          <b>High-quality verbatim & authentic feedback may win the Monthly Quality Award (200 MYR) and be seen & recognized by management. Please capture customer voices truthfully and proactively — every feedback you submit could be spotlighted by management!</b>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>改进建议 / Improvement Suggestions <span class="opt">(选填 optional)</span></label>
+        <textarea id="f_suggestion" placeholder="客户对产品或服务有什么改进建议？/ Any suggestions to improve our product or service?"></textarea>
+        <div class="hint" style="background:linear-gradient(135deg,#fff7e6,#fff1f0);border:1px solid #ffd591;border-radius:8px;padding:10px 12px;margin-top:8px;color:#874d00">
+          💡 <b>你的建议很有价值 / Your Suggestions Matter:</b> 无论是功能优化、服务体验还是新需求，欢迎如实记录——优质建议同样有机会获得<b>月度质量奖（200 MYR）</b>并被管理层看见和表彰！<br>
+          <b>Features, service experience, or new needs — quality suggestions may also win the Monthly Quality Award (200 MYR) and be seen & recognized by management!</b>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>改进建议类型 / Improvement Type <span class="opt">(选填，便于按类型聚合统计)</span></label>
+        <div class="check-group" data-key="issue_type" id="g_issuetype">
+          <span class="check-item">集成问题 Integration</span><span class="check-item">数据迁移/覆盖 Data Migration</span><span class="check-item">账户冻结 Account Frozen</span><span class="check-item">KYC/合规 KYC/Compliance</span><span class="check-item">价格 Price</span><span class="check-item">功能缺失 Missing Feature</span><span class="check-item">服务响应慢 Slow Service</span><span class="check-item">其他 Other</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>涉及方 / Involved Party <span class="opt">(选填，便于跨团队推动改进)</span></label>
+        <div class="check-group" data-key="involved_party" id="g_involved">
+          <span class="check-item">EPOS</span><span class="check-item">Anext</span><span class="check-item">支付 Payment</span><span class="check-item">物流 Logistics</span><span class="check-item">其他 Other</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>备注 / Notes</label>
+        <textarea id="f_notes" placeholder="Optional"></textarea>
+      </div>
+
+      <button class="submit-btn" onclick="submitForm()">提交 Submit</button>
+    </div>
+  </div>
+
+  <!-- 排行榜 -->
+  <div class="form-section" id="sec-L">
+    <div class="card">
+      <div class="card-title">🏆 月度反馈竞赛排行 / Monthly Leaderboard</div>
+      <div class="card-sub">按有效反馈数量排名 · Ranked by valid feedback count</div>
+      <div class="hint" style="background:linear-gradient(135deg,#e8f3ff,#f0f5fa);border:1px solid #bae0ff;border-radius:10px;padding:14px;margin-bottom:14px;color:#0c6cbf;font-size:12px;line-height:1.8">
+        📌 <b>竞赛规则 / Contest Rules:</b><br>
+        · 按有效反馈数量排名，按月发奖 / Ranked by valid feedback count, monthly prizes<br>
+        · 全员统一评奖，可按角色筛选查看 / Unified ranking for all roles, filter by role to view<br>
+        · 有效反馈=必填完整+同商户同场景月内仅计1条 / Valid = all required fields + unique merchant per scenario per month<br>
+        · 单人单季最多领奖2次 / Max 2 wins per person per quarter<br>
+        · SG按 1 MYR ≈ 0.30 SGD 换算 / SG: 1 MYR ≈ 0.30 SGD<br>
+        <br>
+        ⚠️ <b>说明 / Note:</b> 本排行榜按反馈<b>数量</b>展示，仅供参考。正式评奖还需结合反馈<b>质量</b>（客户原声、改进建议的价值等）综合评估，最终结果以管理层公布为准。<br>
+        <b>This leaderboard shows feedback volume for reference only. Final awards also consider feedback quality (verbatim, suggestion value, etc.). Official results are subject to management review.</b>
+      </div>
+      <div class="form-group">
+        <label>角色筛选 / Role Filter</label>
+        <div class="radio-group" id="lbRoleFilter" data-val="ALL">
+          <span class="radio-item selected" data-role="ALL">全部 All</span>
+          <span class="radio-item" data-role="BD">BD</span>
+          <span class="radio-item" data-role="SDR">SDR</span>
+          <span class="radio-item" data-role="Ops">Ops</span>
+          <span class="radio-item" data-role="CS">CS</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>市场筛选 / Market Filter</label>
+        <div class="radio-group" id="lbMarketFilter" data-val="ALL">
+          <span class="radio-item selected" data-market="ALL">全部 All</span>
+          <span class="radio-item" data-market="MY">MY</span>
+          <span class="radio-item" data-market="SG">SG</span>
+        </div>
+      </div>
+      <div id="leaderboard" style="margin-top:8px"></div>
+      <div class="hint" style="margin-top:14px;font-size:11px;color:var(--text-3)">数据实时同步，全员提交的记录会汇总到同一份榜单 / Live-synced across everyone who submits.</div>
+    </div>
+  </div>
+
+  <div class="records" id="recordsPanel" style="display:none">
+    <h3>📦 已收集记录 / Collected Records <span id="recCount" style="color:var(--primary)"></span></h3>
+    <div class="actions">
+      <button class="btn-sm" onclick="exportCSV()">⬇️ 导出CSV</button>
+      <button class="btn-sm" onclick="exportJSON()">⬇️ 导出JSON</button>
+      <button class="btn-sm" onclick="clearAll()" style="color:var(--danger)">🗑️ 清空</button>
+    </div>
+    <div id="recordList"><div class="empty">暂无记录 / No records yet</div></div>
+    <div class="hint" style="margin-top:10px;font-size:11px;color:var(--text-3)">数据为全员共享的云端记录，可导出CSV/JSON做进一步统计。</div>
+  </div>
+
+  <div style="text-align:center;padding:16px 0 0;color:var(--text-3);font-size:11px">
+    <span id="adminEntry" style="cursor:pointer;user-select:none">© EPOS Customer Feedback</span>
+  </div>
+</div>
+
+<div class="toast" id="toast">✓ 提交成功 Submitted!</div>
+
+<script>
+// ============================================
+// 请把下面这行换成你自己部署的 Google Apps Script 网址
+// (部署步骤见附带的 Code.gs 文件顶部注释)
+// ============================================
+const SCRIPT_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnRQGccQvJVddBP20bgurosDC2Bn6CYqjmDL57z9b4leuSpoYDx9l-5pPy3j0Q_DVsB__7EwvxwocpbvhHDyK9bpDHyAWW8pBx5XZ4_OxW7M3o-ncEK0M9mqmUw0YcWRjJLPartmrAOgEv0wxqk2rINhZyRCpNk3g5F_XHHk0wFaME5LJL3yae44m_oO84kTLdzgRjXMA3pv5uMTIuSa288gENSXVd13uNJkFUfzQ_LXHZicKnsm1RSaI70BHzd5GETuXRKNUE9r26zfh8x0VmNLdlhQLw&lib=MwpBQaXaWunuKHCohR_eMz-NK5AC04NqH';
+
+const npsG=document.getElementById('g_nps');
+for(let i=0;i<=10;i++){const b=document.createElement('button');b.className='nps-btn';b.textContent=i;b.onclick=()=>{npsG.querySelectorAll('.nps-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');npsG.dataset.val=i;};npsG.appendChild(b);}
+
+function isOtherItem(item){const t=item.textContent.trim();return t==='其他 Other'||t==='其他'||t==='Other'||t.indexOf('其他 Other')>=0;}
+function ensureOtherBox(group){
+  const fg=group.closest('.form-group')||group.parentNode;
+  let box=fg.querySelector('.other-box');
+  const isRoleRequired=(group.id==='g_role');
+  if(!box){
+    box=document.createElement('input');box.type='text';box.className='other-box';
+    box.placeholder=isRoleRequired?'请填写具体部门名称 (必填) / Please specify department (required)':'请填写具体内容 (选填) / Please specify (optional)';
+    box.style.cssText='margin-top:8px;display:block;width:100%;padding:10px 12px;border:1px dashed '+(isRoleRequired?'var(--danger)':'var(--primary)')+';border-radius:8px;font-size:14px;background:#fff';
+    fg.appendChild(box);
+  }
+  return box;
+}
+function removeOtherBox(group){
+  const fg=group.closest('.form-group')||group.parentNode;
+  const box=fg.querySelector('.other-box');
+  if(box){box.remove();}
+}
+function bindSelect(group){
+  const isCheck=group.classList.contains('check-group');
+  const max=parseInt(group.dataset.max||'99');
+  group.querySelectorAll('.radio-item, .check-item').forEach(item=>{
+    item.onclick=()=>{
+      const isOther=isOtherItem(item);
+      if(isCheck){
+        if(item.classList.contains('selected')){item.classList.remove('selected');if(isOther){removeOtherBox(group);}}
+        else{if(group.querySelectorAll('.selected').length>=max)return;item.classList.add('selected');if(isOther){const b=ensureOtherBox(group);b.focus();}}
+      }else{
+        removeOtherBox(group);
+        group.querySelectorAll('.radio-item').forEach(x=>x.classList.remove('selected'));
+        item.classList.add('selected');group.dataset.val=item.textContent;
+        if(isOther){const b=ensureOtherBox(group);b.focus();}
+      }
+    };
+  });
+}
+document.querySelectorAll('.radio-group, .check-group').forEach(bindSelect);
+
+let curScenario='';
+document.querySelectorAll('#scenarioPick .radio-item').forEach(item=>{
+  item.onclick=()=>{
+    document.querySelectorAll('#scenarioPick .radio-item').forEach(x=>x.classList.remove('selected'));
+    item.classList.add('selected');curScenario=item.dataset.sc;
+    // 切换场景时清除所有 disabled 状态，避免残留置灰
+    document.querySelectorAll('.radio-item.disabled, .check-item.disabled').forEach(x=>x.classList.remove('disabled'));
+    // 只有销售场景显示"本次结果"
+    const salesBox=document.querySelector('[data-show="sales"]');
+    if(salesBox){salesBox.style.display=(curScenario==='sales')?'block':'none';}
+    // 部署场景: 客户已购买产品，自动设"已购买"并触发联动
+    const purGroup=document.getElementById('g_purchased');
+    if(curScenario==='deployment'&&purGroup){
+      purGroup.querySelectorAll('.selected').forEach(x=>x.classList.remove('selected'));
+      purGroup.querySelectorAll('.radio-item').forEach(it=>{
+        if(it.textContent.trim()==='已购买 Purchased'){
+          it.classList.add('selected');
+          purGroup.dataset.val=it.textContent;
+        }
+      });
+      // 触发 purchased 联动
+      const evt=new MouseEvent('click',{bubbles:true});
+      const sel=purGroup.querySelector('.selected');
+      if(sel){sel.dispatchEvent(evt);}
+    }
+    // 非销售场景：购买原因/不购买原因按"是否已购买"字段联动，重置 outcome 标记
+    updateBuyReasonReq();
+  };
+});
+
+// 销售场景 outcome 联动：购买成功→购买原因必填；失单/拒绝→不购买原因必填
+function updateBuyReasonReq(){
+  const reqBuy=document.getElementById('req_buy');
+  const optBuy=document.getElementById('opt_buy');
+  const reqNoBuy=document.getElementById('req_nobuy');
+  const optNoBuy=document.getElementById('opt_nobuy');
+  let needBuy=false, needNoBuy=false;
+  if(curScenario==='sales'){
+    const outcomeEl=document.getElementById('g_outcome');
+    const ov=(outcomeEl&&outcomeEl.dataset.val)||'';
+    if(ov.indexOf('购买成功')>=0||ov.indexOf('Purchased')>=0){needBuy=true;}
+    if(ov.indexOf('失单')>=0||ov.indexOf('Lost')>=0||ov.indexOf('拒绝')>=0||ov.indexOf('Rejected')>=0){needNoBuy=true;}
+  }else{
+    // 非销售场景：按"是否已购买"字段
+    const purEl=document.getElementById('g_purchased');
+    const pv=(purEl&&purEl.dataset.val)||'';
+    if(isPurchasedVal(pv)){needBuy=true;}
+    if(isNotPurchasedVal(pv)){needNoBuy=true;}
+  }
+  if(reqBuy){reqBuy.style.display=needBuy?'inline':'none';}
+  if(optBuy){optBuy.textContent=needBuy?'(必填 required)':'(选填 optional)';}
+  if(reqNoBuy){reqNoBuy.style.display=needNoBuy?'inline':'none';}
+  if(optNoBuy){optNoBuy.textContent=needNoBuy?'(必填 required)':'(选填 optional)';}
+  // 隐藏逻辑: 失单/未购买→隐藏购买原因; 购买成功/已购买→隐藏不购买原因
+  const buyGroup=document.getElementById('g_buyreason');
+  const noBuyGroup=document.getElementById('g_nobuy');
+  const buyFG=buyGroup&&buyGroup.closest('.form-group');
+  const noBuyFG=noBuyGroup&&noBuyGroup.closest('.form-group');
+  const isLostOrNotBuy=needNoBuy;
+  const isWonOrBuy=needBuy;
+  if(buyFG){
+    if(isLostOrNotBuy){buyFG.style.display='none';if(buyGroup){buyGroup.querySelectorAll('.selected').forEach(x=>x.classList.remove('selected'));buyGroup.dataset.val='';}}
+    else{buyFG.style.display='block';}
+  }
+  if(noBuyFG){
+    if(isWonOrBuy){noBuyFG.style.display='none';if(noBuyGroup){noBuyGroup.querySelectorAll('.selected').forEach(x=>x.classList.remove('selected'));noBuyGroup.dataset.val='';}}
+    else{noBuyFG.style.display='block';}
+  }
+}
+// outcome 联动: 购买成功→自动选"已购买"; 失单/拒绝→自动选"未购买"; 失单隐藏续约问题
+function autoSetPurchasedByOutcome(){
+  const outcomeEl=document.getElementById('g_outcome');
+  const ov=(outcomeEl&&outcomeEl.dataset.val)||'';
+  const purGroup=document.getElementById('g_purchased');
+  const renewGroup=document.getElementById('fg_renewal');
+  const isLost=(ov.indexOf('失单')>=0||ov.indexOf('Lost')>=0||ov.indexOf('拒绝')>=0||ov.indexOf('Rejected')>=0);
+  // 失单时隐藏续约问题并清空已选
+  if(renewGroup){
+    if(isLost){
+      renewGroup.style.display='none';
+      const rg=document.getElementById('g_renewal');
+      if(rg){rg.querySelectorAll('.selected').forEach(x=>x.classList.remove('selected'));rg.dataset.val='';}
+    }else{
+      renewGroup.style.display='block';
+    }
+  }
+  if(curScenario!=='sales'){return;}
+  if(!purGroup)return;
+  let target='';
+  let lockPurchased=false;
+  if(ov.indexOf('购买成功')>=0||ov.indexOf('Purchased')>=0){target='已购买 Purchased';lockPurchased=true;}
+  else if(isLost){target='未购买 Not Purchased';lockPurchased=true;}
+  // 跟进中: 不锁定purchased，让用户自选(试用/已购买/未购买都有可能)
+  // 锁定/解锁 purchased 选项
+  purGroup.querySelectorAll('.radio-item').forEach(it=>{
+    if(lockPurchased){it.classList.add('disabled');}
+    else{it.classList.remove('disabled');}
+  });
+  if(!target)return;
+  // 找到对应选项并选中
+  const items=purGroup.querySelectorAll('.radio-item');
+  purGroup.querySelectorAll('.selected').forEach(x=>x.classList.remove('selected'));
+  items.forEach(it=>{
+    if(it.textContent.trim()===target){
+      it.classList.add('selected');
+      purGroup.dataset.val=it.textContent;
+    }
+  });
+  // 触发 purchased 联动(使用时长显示/电话账号必填)
+  const evt=new MouseEvent('click',{bubbles:true});
+  purGroup.querySelector('.selected')&&purGroup.querySelector('.selected').dispatchEvent(evt);
+}
+document.querySelectorAll('#g_outcome .radio-item').forEach(item=>{
+  item.addEventListener('click',()=>{setTimeout(()=>{autoSetPurchasedByOutcome();updateBuyReasonReq();updateContactReq();},0);});
+});
+document.querySelectorAll('#g_purchased .radio-item').forEach(item=>{
+  item.addEventListener('click',()=>{setTimeout(updateBuyReasonReq,0);});
+});
+
+// 电话/邮箱 + EPOS账号 必填联动（综合 outcome 和 purchased 判断）
+function updateContactReq(){
+  const reqPhone=document.getElementById('req_phone'),reqAcct=document.getElementById('req_acct');
+  const optPhone=document.getElementById('opt_phone'),optAcct=document.getElementById('opt_acct');
+  const outcomeEl=document.getElementById('g_outcome');
+  const ov=(outcomeEl&&outcomeEl.dataset.val)||'';
+  const purEl=document.getElementById('g_purchased');
+  const pv=(purEl&&purEl.dataset.val)||'';
+  const isLost=(ov.indexOf('失单')>=0||ov.indexOf('Lost')>=0||ov.indexOf('拒绝')>=0||ov.indexOf('Rejected')>=0);
+  const isWon=(ov.indexOf('购买成功')>=0||ov.indexOf('Purchased')>=0);
+  const purchased=isPurchasedVal(pv);
+  const onTrial=(pv.indexOf('试用')>=0||pv.indexOf('Trial')>=0);
+  // 电话/邮箱: 失单选填，其他必填
+  if(isLost){
+    reqPhone.style.display='none';optPhone.textContent='(选填 optional)';
+  }else{
+    reqPhone.style.display='inline';optPhone.textContent='(必填: 电话或邮箱至少一个 required)';
+  }
+  // EPOS账号: 购买成功 / 已购买 / 部署场景 必填，其他选填
+  const acctRequired=(curScenario==='sales'&&isWon)||purchased||(curScenario==='deployment');
+  if(acctRequired){
+    reqAcct.style.display='inline';optAcct.textContent='(必填 required)';
+  }else{
+    reqAcct.style.display='none';optAcct.textContent='(选填 optional)';
+  }
+}
+// 购买状态联动: 购买/使用了多久显示与选项切换 + 电话/账号必填
+document.querySelectorAll('#g_purchased .radio-item').forEach(item=>{
+  item.addEventListener('click',()=>{
+    const val=item.textContent;
+    const purchased=isPurchasedVal(val);
+    const onTrial=(val.indexOf('试用')>=0||val.indexOf('Trial')>=0);
+    const showUsage=(purchased||onTrial);
+    // 已购买/试用中 显示"购买/使用了多久"; 未购买隐藏
+    document.querySelectorAll('[data-show="purchased_yes"]').forEach(g=>g.style.display=showUsage?'block':'none');
+    const usageGroup=document.getElementById('g_usage');
+    const usageHint=document.getElementById('usage_hint');
+    if(usageGroup){
+      // 清除已选
+      usageGroup.querySelectorAll('.selected').forEach(x=>x.classList.remove('selected'));
+      usageGroup.dataset.val='';
+      // 切换选项可见性: 已购买→套餐选项; 试用中→试用选项
+      usageGroup.querySelectorAll('.opt-pkg').forEach(o=>o.style.display=purchased?'inline-flex':'none');
+      usageGroup.querySelectorAll('.opt-trial').forEach(o=>o.style.display=onTrial?'inline-flex':'none');
+      if(usageHint){
+        if(purchased){usageHint.textContent='请选择购买的套餐时长 / Select the purchased package duration';}
+        else if(onTrial){usageHint.textContent='产品试用期为30天，请选择试用时长 / Trial period is 30 days, select trial duration';}
+      }
+    }
+    updateContactReq();
+  });
+});
+
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelectorAll('.form-section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('sec-'+t.dataset.target).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+});
+
+function gv(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+function gg(group){let v=group.dataset.val||'';const fg=group.closest('.form-group')||group.parentNode;const box=fg&&fg.querySelector('.other-box');if(box&&box.value.trim()){v=v+': '+box.value.trim();}return v;}
+function gc(group){let v=[...group.querySelectorAll('.selected')].map(x=>x.textContent).join('; ');const fg=group.closest('.form-group')||group.parentNode;const box=fg&&fg.querySelector('.other-box');if(box&&box.value.trim()){v=v+' (其他: '+box.value.trim()+')';}return v;}
+
+function collectData(){
+  return {
+    timestamp:new Date().toISOString(),
+    scenario:curScenario,
+    outcome:gg(document.getElementById('g_outcome')),
+    merchant:gv('f_merchant'),
+    market:gg(document.getElementById('g_market')),
+    industry:gg(document.getElementById('g_industry')),
+    phone:gv('f_phone'),
+    epos_account:gv('f_acct'),
+    submitter:gv('f_submitter'),
+    role:gg(document.getElementById('g_role')),
+    channel:gg(document.getElementById('g_channel')),
+    purchased:gg(document.getElementById('g_purchased')),
+    usage_duration:gg(document.getElementById('g_usage')),
+    fav_feature:gc(document.getElementById('g_fav')),
+    least_feature:gc(document.getElementById('g_least')),
+    buy_reason:gc(document.getElementById('g_buyreason')),
+    no_buy_reason:gc(document.getElementById('g_nobuy')),
+    nps:gg(document.getElementById('g_nps')),
+    renewal:gg(document.getElementById('g_renewal')),
+    rec_reason:gv('f_rec_reason'),
+    no_rec_reason:gv('f_no_rec_reason'),
+    verbatim:gv('f_verbatim'),
+    suggestion:gv('f_suggestion'),
+    issue_type:gc(document.getElementById('g_issuetype')),
+    involved_party:gc(document.getElementById('g_involved')),
+    notes:gv('f_notes')
+  };
+}
+
+function isPurchasedVal(v){return (v.indexOf('已购买')>=0)||(v.indexOf('Purchased')>=0&&v.indexOf('Not')<0&&v.indexOf('未')<0);}
+function isNotPurchasedVal(v){return v.indexOf('未购买')>=0||v.indexOf('Not Purchased')>=0||(v.indexOf('Not')>=0&&v.indexOf('Purchased')>=0);}
+function validate(d){
+  if(!curScenario){alert('请选择业务场景 / Select scenario');return false;}
+  const base=['merchant','market','industry','submitter','role','channel','purchased','fav_feature','least_feature','nps'];
+  for(const k of base){if(!d[k]){alert('请填写必填字段: '+k+'\nPlease fill: '+k);return false;}}
+  const purchased=isPurchasedVal(d.purchased);
+  const onTrial=(d.purchased.indexOf('试用')>=0||d.purchased.indexOf('Trial')>=0);
+  // 购买/使用了多久：已购买/试用中必填
+  if(purchased||onTrial){
+    if(!d.usage_duration){alert('请选择购买/使用了多久 / Select purchase/usage duration');return false;}
+  }
+  // 电话/邮箱：失单选填，其他必填（至少一个）
+  const isLost=(d.outcome.indexOf('失单')>=0||d.outcome.indexOf('Lost')>=0||d.outcome.indexOf('拒绝')>=0||d.outcome.indexOf('Rejected')>=0);
+  if(!isLost){
+    if(!d.phone){alert('请填写客户电话或邮箱（至少一个）/ Phone or email required (at least one)');return false;}
+  }
+  // EPOS账号：销售场景购买成功 或 已购买 必填
+  const isWon=(d.outcome.indexOf('购买成功')>=0||d.outcome.indexOf('Purchased')>=0);
+  const acctRequired=(curScenario==='sales'&&isWon)||purchased||(curScenario==='deployment');
+  if(acctRequired&&!d.epos_account){alert('请填写客户EPOS账号 / EPOS account required');return false;}
+  // 购买原因 / 不购买原因：按联动条件必填
+  let needBuy=false, needNoBuy=false;
+  if(curScenario==='sales'){
+    if(d.outcome.indexOf('购买成功')>=0||d.outcome.indexOf('Purchased')>=0){needBuy=true;}
+    if(d.outcome.indexOf('失单')>=0||d.outcome.indexOf('Lost')>=0||d.outcome.indexOf('拒绝')>=0||d.outcome.indexOf('Rejected')>=0){needNoBuy=true;}
+  }else{
+    if(purchased){needBuy=true;}
+    if(isNotPurchasedVal(d.purchased)){needNoBuy=true;}
+  }
+  if(needBuy&&!d.buy_reason){alert('购买成功请填写购买原因 / Fill purchase reason');return false;}
+  if(needNoBuy&&!d.no_buy_reason){alert('失单/未购买请填写不购买原因 / Fill no-buy reason');return false;}
+  if(curScenario==='sales'&&!d.outcome){alert('请选择本次结果 / Select outcome');return false;}
+  // 角色选"其他"时，其他文本框必填
+  if(d.role&&d.role.indexOf('其他')>=0&&d.role.indexOf(':')<0){
+    alert('角色选"其他"请填写具体部门名称 / Please specify department for "Other"');return false;
+  }
+  return true;
+}
+
+// 所有反馈记录存在 Google Sheet 里，读写都通过部署好的 Apps Script 接口
+async function fetchAllRecords(){
+  if(!SCRIPT_URL||SCRIPT_URL.indexOf('PASTE_YOUR')>=0){
+    console.warn('尚未配置 SCRIPT_URL，无法读取数据');
+    return [];
+  }
+  try{
+    const res=await fetch(SCRIPT_URL,{method:'GET'});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    return Array.isArray(data)?data:[];
+  }catch(e){
+    console.error('读取记录失败 / Failed to fetch records',e);
+    return [];
+  }
+}
+
+async function submitForm(){
+  const d=collectData();
+  if(!validate(d))return;
+  if(!SCRIPT_URL||SCRIPT_URL.indexOf('PASTE_YOUR')>=0){
+    alert('尚未配置数据接口地址(SCRIPT_URL)，请联系管理员完成配置 / Data endpoint not configured yet');
+    return;
+  }
+  const btn=document.querySelector('.submit-btn');
+  if(btn){btn.disabled=true;btn.textContent='提交中... Submitting...';}
+  try{
+    // 用 text/plain 避免触发浏览器的CORS预检请求，Apps Script对此支持较好
+    const res=await fetch(SCRIPT_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(d)
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+  }catch(e){
+    console.error(e);
+    alert('提交失败，请检查网络后重试 / Submit failed, please check your connection and retry');
+    if(btn){btn.disabled=false;btn.textContent='提交 Submit';}
+    return;
+  }
+  if(d.submitter){
+    try{localStorage.setItem('epos_submitter',d.submitter);}catch(e){/*忽略*/}
+  }
+  if(btn){btn.disabled=false;btn.textContent='提交 Submit';}
+  showToast('✓ 提交成功 Submitted!');
+  resetForm();
+  try{
+    const remembered=localStorage.getItem('epos_submitter')||'';
+    if(remembered){document.getElementById('f_submitter').value=remembered;}
+  }catch(e){/*忽略*/}
+  renderRecords();renderLeaderboard();
+}
+
+function resetForm(){
+  ['f_merchant','f_phone','f_acct','f_rec_reason','f_no_rec_reason','f_verbatim','f_suggestion','f_notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.querySelectorAll('.radio-group, .check-group, .nps-group').forEach(g=>{g.querySelectorAll('.selected').forEach(x=>x.classList.remove('selected'));g.dataset.val='';});
+  document.querySelectorAll('.other-box').forEach(b=>b.remove());
+  curScenario='';
+  document.querySelectorAll('.dynamic').forEach(g=>g.style.display='none');
+  document.querySelectorAll('#scenarioPick .radio-item').forEach(x=>x.classList.remove('selected'));
+  document.getElementById('req_phone').style.display='inline';
+  document.getElementById('req_acct').style.display='inline';
+  updateContactReq();
+  updateBuyReasonReq();
+}
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+async function renderRecords(){
+  const panel=document.getElementById('recordsPanel');
+  if(panel.style.display==='none')return; // 未打开管理面板时不必拉取全部数据
+  const list=document.getElementById('recordList');
+  list.innerHTML='<div class="empty">加载中... Loading...</div>';
+  const records=await fetchAllRecords();
+  records.sort((a,b)=>(a.timestamp||'').localeCompare(b.timestamp||''));
+  document.getElementById('recCount').textContent='('+records.length+')';
+  if(records.length===0){list.innerHTML='<div class="empty">暂无记录 / No records yet</div>';return;}
+  list.innerHTML=records.slice().reverse().map((r,i)=>{
+    const idx=records.length-i;
+    return `<div class="record-item"><b>#${idx} [${r.scenario||'-'}${r.outcome?'/'+r.outcome:''}]</b> ${r.merchant||'-'} · ${r.market||''} · ${r.submitter||''}(${r.role||''}) · NPS${r.nps||'-'} <br><span style="color:var(--text-3)">${r.timestamp?new Date(r.timestamp).toLocaleString():''}</span></div>`;
+  }).join('');
+}
+
+async function exportCSV(){
+  const records=await fetchAllRecords();
+  if(records.length===0){alert('暂无数据 / No data');return;}
+  const allKeys=[...new Set(records.flatMap(r=>Object.keys(r)))];
+  let csv=allKeys.join(',')+'\n';
+  records.forEach(r=>{csv+=allKeys.map(k=>`"${(r[k]||'').toString().replace(/"/g,'""')}"`).join(',')+'\n';});
+  download(csv,'epos_feedback.csv','text/csv');
+}
+async function exportJSON(){
+  const records=await fetchAllRecords();
+  if(records.length===0){alert('暂无数据 / No data');return;}
+  download(JSON.stringify(records,null,2),'epos_feedback.json','application/json');
+}
+function download(content,filename,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);}
+function clearAll(){
+  alert('出于安全考虑，网页端不提供远程清空功能。\n如需删除数据，请直接打开对应的 Google 表格，手动删除行即可。\n\nFor safety, remote clearing is disabled here.\nPlease delete rows directly in the Google Sheet instead.');
+}
+
+function isValidRecord(r){
+  // 有效反馈: 必填字段完整即可(verbatim 现为选填，但有 verbatim 的优先计入质量奖候选)
+  return r.merchant&&r.submitter&&r.channel&&r.purchased&&r.fav_feature&&r.least_feature&&r.nps;
+}
+async function renderLeaderboard(){
+  const role=document.getElementById('lbRoleFilter').dataset.val||'ALL';
+  const market=document.getElementById('lbMarketFilter').dataset.val||'ALL';
+  const box=document.getElementById('leaderboard');
+  box.innerHTML='<div class="empty">加载中... Loading...</div>';
+  const records=await fetchAllRecords();
+  const seen=new Set();const stats={};
+  records.forEach(r=>{
+    if(!isValidRecord(r))return;
+    const rl=r.role||'';
+    if(role!=='ALL'&&rl!==role)return;
+    const mk=r.market||'';
+    if(market!=='ALL'&&mk!==market)return;
+    const month=(r.timestamp||'').slice(0,7);
+    const key=r.submitter+'|'+r.merchant+'|'+r.scenario+'|'+month;
+    if(seen.has(key))return;seen.add(key);
+    const name=r.submitter||'Unknown';
+    if(!stats[name]){stats[name]={count:0,role:rl||'-'};}
+    stats[name].count++;
+  });
+  const ranked=Object.entries(stats).map(([name,s])=>({name,role:s.role,count:s.count})).sort((a,b)=>b.count-a.count);
+  if(ranked.length===0){box.innerHTML='<div class="empty">暂无有效数据 / No data yet</div>';return;}
+  const prizeRank=(idx)=>{if(idx===0)return{medal:'🥇',prize:'500 MYR'};if(idx>=1&&idx<=3)return{medal:'🥈',prize:'200 MYR'};if(idx>=4&&idx<=8)return{medal:'🥉',prize:'100 MYR'};return{medal:(idx+1),prize:'—'};};
+  box.innerHTML=ranked.map((e,i)=>{const p=prizeRank(i);return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:${i===0?'#fffbe6':i<=3?'#fff7e6':i<=13?'#fffaf2':'#fff'};border:1px solid ${i===0?'#ffd666':i<=3?'#ffd591':i<=13?'#ffe7ba':'var(--border)'};border-radius:10px;margin-bottom:8px"><div style="min-width:36px;text-align:center;font-size:18px;font-weight:700;color:#d46b08">${p.medal}</div><div style="flex:1"><b>${e.name}</b> <span style="font-size:11px;color:#0c6cbf;background:#e8f3ff;padding:2px 8px;border-radius:10px;margin-left:4px">${e.role}</span><br><span style="font-size:12px;color:var(--text-3)">${e.count} 条 feedbacks</span></div><div style="font-size:13px;font-weight:700;color:${p.prize==='—'?'var(--text-3)':'#d46b08'}">${p.prize}</div></div>`;}).join('');
+}
+document.querySelectorAll('#lbRoleFilter .radio-item').forEach(item=>{item.onclick=()=>{document.querySelectorAll('#lbRoleFilter .radio-item').forEach(x=>x.classList.remove('selected'));item.classList.add('selected');document.getElementById('lbRoleFilter').dataset.val=item.dataset.role;renderLeaderboard();};});
+document.querySelectorAll('#lbMarketFilter .radio-item').forEach(item=>{item.onclick=()=>{document.querySelectorAll('#lbMarketFilter .radio-item').forEach(x=>x.classList.remove('selected'));item.classList.add('selected');document.getElementById('lbMarketFilter').dataset.val=item.dataset.market;renderLeaderboard();};});
+
+renderRecords();renderLeaderboard();
+
+// 预填填写人 (URL参数优先, 其次本地记忆——每个人的浏览器只会记住自己的名字)
+(function prefillSubmitter(){
+  const params=new URLSearchParams(window.location.search);
+  const fromUrl=params.get('name')||params.get('user')||'';
+  let remembered='';
+  try{remembered=localStorage.getItem('epos_submitter')||'';}catch(e){remembered='';}
+  const name=fromUrl||remembered;
+  if(name){document.getElementById('f_submitter').value=name;}
+  const hint=document.getElementById('loginHint');
+  if(fromUrl){hint.textContent='✓ 已识别 '+fromUrl;}
+  else if(remembered){hint.textContent='✓ 已记忆 '+remembered;}
+})();
+
+// 管理员入口: ?admin=1 或点击版权3次显示数据管理面板
+(function adminEntry(){
+  const panel=document.getElementById('recordsPanel');
+  const entry=document.getElementById('adminEntry');
+  function showAdmin(){
+    panel.style.display='block';
+    renderRecords();
+    entry.textContent='🔒 管理员模式 Admin Mode · 点击隐藏';
+  }
+  function hideAdmin(){
+    panel.style.display='none';
+    entry.textContent='© EPOS Customer Feedback';
+  }
+  // URL参数直接开
+  if(new URLSearchParams(window.location.search).get('admin')==='1'){showAdmin();}
+  // 点击版权3次切换
+  let clickCount=0,clickTimer=null;
+  entry.addEventListener('click',()=>{
+    clickCount++;
+    clearTimeout(clickTimer);
+    clickTimer=setTimeout(()=>{clickCount=0;},800);
+    if(clickCount>=3){
+      clickCount=0;
+      if(panel.style.display==='block'){hideAdmin();}else{showAdmin();}
+    }
+  });
+})();
+</script>
+</body>
+</html>
