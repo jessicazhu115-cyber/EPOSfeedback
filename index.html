@@ -186,8 +186,8 @@ textarea{resize:vertical;min-height:60px}
         <div class="hint" id="hint_phone">至少填写电话或邮箱（失单可选填）/ At least phone or email (optional for lost)</div>
       </div>
       <div class="form-group">
-        <label>客户EPOS账号 / EPOS Account ID <span id="req_acct">*</span> <span class="opt" id="opt_acct"></span></label>
-        <input type="text" id="f_acct" placeholder="EPOS account ID (if purchased)">
+        <label>客户EPOS账号 / EPOS Account ID <span class="opt">(选填 optional)</span></label>
+        <input type="text" id="f_acct" placeholder="EPOS account ID (optional)">
         <div class="hint" id="hint_acct">购买成功/已购买/部署场景必填，其他选填 / Required for purchase success, purchased, or deployment; optional otherwise</div>
       </div>
       <div class="form-group">
@@ -582,30 +582,18 @@ document.querySelectorAll('#g_purchased .radio-item').forEach(item=>{
   item.addEventListener('click',()=>{setTimeout(updateBuyReasonReq,0);});
 });
 
-// 电话/邮箱 + EPOS账号 必填联动（综合 outcome 和 purchased 判断）
+// 电话/邮箱必填联动（按 outcome 判断；EPOS账号现固定为选填，不再联动）
 function updateContactReq(){
-  const reqPhone=document.getElementById('req_phone'),reqAcct=document.getElementById('req_acct');
-  const optPhone=document.getElementById('opt_phone'),optAcct=document.getElementById('opt_acct');
+  const reqPhone=document.getElementById('req_phone');
+  const optPhone=document.getElementById('opt_phone');
   const outcomeEl=document.getElementById('g_outcome');
   const ov=(outcomeEl&&outcomeEl.dataset.val)||'';
-  const purEl=document.getElementById('g_purchased');
-  const pv=(purEl&&purEl.dataset.val)||'';
   const isLost=(ov.indexOf('失单')>=0||ov.indexOf('Lost')>=0||ov.indexOf('拒绝')>=0||ov.indexOf('Rejected')>=0);
-  const isWon=(ov.indexOf('购买成功')>=0||ov.indexOf('Purchased')>=0);
-  const purchased=isPurchasedVal(pv);
-  const onTrial=(pv.indexOf('试用')>=0||pv.indexOf('Trial')>=0);
   // 电话/邮箱: 失单选填，其他必填
   if(isLost){
     reqPhone.style.display='none';optPhone.textContent='(选填 optional)';
   }else{
     reqPhone.style.display='inline';optPhone.textContent='(必填: 电话或邮箱至少一个 required)';
-  }
-  // EPOS账号: 购买成功 / 已购买 / 部署场景 必填，其他选填
-  const acctRequired=(curScenario==='sales'&&isWon)||purchased||(curScenario==='deployment');
-  if(acctRequired){
-    reqAcct.style.display='inline';optAcct.textContent='(必填 required)';
-  }else{
-    reqAcct.style.display='none';optAcct.textContent='(选填 optional)';
   }
 }
 // 购买状态联动: 购买/使用了多久显示与选项切换 + 电话/账号必填
@@ -683,8 +671,6 @@ function updateProgressBar(){
   if(!isLost){push(gv('f_phone'));}
 
   const isWon=(outcomeVal.indexOf('购买成功')>=0||outcomeVal.indexOf('Purchased')>=0);
-  const acctRequired=(curScenario==='sales'&&isWon)||purchased||(curScenario==='deployment');
-  if(acctRequired){push(gv('f_acct'));}
 
   let needBuy=false,needNoBuy=false;
   if(curScenario==='sales'){
@@ -766,10 +752,7 @@ function validate(d){
   if(!isLost){
     if(!d.phone){alert('请填写客户电话或邮箱（至少一个）/ Phone or email required (at least one)');return false;}
   }
-  // EPOS账号：销售场景购买成功 或 已购买 必填
-  const isWon=(d.outcome.indexOf('购买成功')>=0||d.outcome.indexOf('Purchased')>=0);
-  const acctRequired=(curScenario==='sales'&&isWon)||purchased||(curScenario==='deployment');
-  if(acctRequired&&!d.epos_account){alert('请填写客户EPOS账号 / EPOS account required');return false;}
+  // EPOS账号：现为选填，不做必填校验
   // 购买原因 / 不购买原因：按联动条件必填
   let needBuy=false, needNoBuy=false;
   if(curScenario==='sales'){
@@ -856,7 +839,6 @@ function resetForm(){
   document.querySelectorAll('.dynamic').forEach(g=>g.style.display='none');
   document.querySelectorAll('#scenarioPick .radio-item').forEach(x=>x.classList.remove('selected'));
   document.getElementById('req_phone').style.display='inline';
-  document.getElementById('req_acct').style.display='inline';
   updateContactReq();
   updateBuyReasonReq();
   updateNpsReasonReq();
