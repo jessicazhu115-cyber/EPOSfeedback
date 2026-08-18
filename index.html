@@ -72,9 +72,37 @@ textarea{resize:vertical;min-height:60px}
 .form-section.active{display:block}
 .counter{font-size:11px;color:var(--text-3);float:right;font-weight:400}
 @media(max-width:600px){.header h1{font-size:20px}.card{padding:20px 16px}.tab{font-size:12px;min-width:100px}.incentive-banner .prize{min-width:100px}}
+
+/* 提交成功感谢页 */
+.thankyou-overlay{position:fixed;inset:0;background:rgba(15,25,40,.55);display:none;align-items:flex-start;justify-content:center;z-index:1000;overflow-y:auto;padding:24px 12px}
+.thankyou-overlay.show{display:flex}
+.thankyou-card{background:#fff;border-radius:16px;max-width:520px;width:100%;padding:32px 24px 28px;box-shadow:0 20px 60px rgba(0,0,0,.25);margin-top:24px;text-align:center;animation:tyPop .25s ease}
+@keyframes tyPop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+.thankyou-check{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#1677ff,#0fc6c2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px;color:#fff;box-shadow:0 8px 20px rgba(15,198,194,.35)}
+.thankyou-title{font-size:20px;font-weight:800;color:var(--text);margin-bottom:6px}
+.thankyou-sub{font-size:13px;color:var(--text-2);line-height:1.7;margin-bottom:20px}
+.thankyou-sub b{color:var(--primary)}
+.thankyou-lb-title{font-size:13px;font-weight:700;color:var(--teal-dark);text-align:left;margin:18px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--primary-light);display:flex;justify-content:space-between;align-items:center}
+.thankyou-lb-title span.refresh{font-size:11px;font-weight:400;color:var(--primary);cursor:pointer}
+#thankyouLeaderboard{text-align:left;max-height:260px;overflow-y:auto}
+.thankyou-actions{display:flex;gap:10px;margin-top:22px}
+.thankyou-actions button{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none}
+.thankyou-btn-primary{background:var(--primary);color:#fff}
+.thankyou-btn-primary:hover{background:var(--primary-dark)}
+.thankyou-btn-secondary{background:#fff;color:var(--text-2);border:1px solid var(--border) !important}
+.thankyou-btn-secondary:hover{border-color:var(--primary);color:var(--primary)}
+
+/* 左侧进度条 */
+.progress-rail{position:fixed;left:0;top:0;bottom:0;width:6px;background:var(--border);z-index:500;}
+.progress-fill{position:absolute;left:0;top:0;width:100%;height:0%;background:linear-gradient(180deg,var(--primary),var(--teal));transition:height .35s ease;border-radius:0 3px 3px 0}
+.progress-badge{position:fixed;left:14px;top:50%;transform:translateY(-50%);background:#fff;border:1px solid var(--border);border-radius:20px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--primary);box-shadow:0 4px 14px rgba(0,0,0,.1);z-index:501;white-space:nowrap;transition:opacity .2s}
+.progress-rail.hide,.progress-badge.hide{display:none}
+@media(max-width:600px){.progress-rail{width:4px}.progress-badge{left:9px;font-size:10px;padding:5px 8px}}
 </style>
 </head>
 <body>
+<div class="progress-rail" id="progressRail"><div class="progress-fill" id="progressFill"></div></div>
+<div class="progress-badge" id="progressBadge">0%</div>
 <div class="container">
   <div class="header">
     <img src="data:image/png;base64,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" alt="EPOS Logo" style="height:48px;width:auto;margin-bottom:8px;background:#fff;padding:4px 10px;border-radius:8px">
@@ -85,20 +113,17 @@ textarea{resize:vertical;min-height:60px}
 
   <!-- 奖惩制度置顶 -->
   <div class="incentive-banner">
-    <h2>🏆 月度反馈竞赛 · 奖惩制度 / Monthly Feedback Contest & Rules</h2>
+    <h2>🏆 一线反馈激励机制 / Frontline Feedback Incentive Framework</h2>
     <div class="prizes">
-      <div class="prize">🥇 <b>500 MYR</b><small>第1名 · 1人 / 1st ×1</small></div>
-      <div class="prize">🥈 <b>200 MYR</b><small>第2名 · 3人 / 2nd ×3</small></div>
-      <div class="prize">🥉 <b>100 MYR</b><small>第3名 · 5人 / 3rd ×5</small></div>
-      <div class="prize">🌟 <b>200 MYR</b><small>质量奖 · 2人 / Quality ×2</small></div>
+      <div class="prize">💡 <b>RM200–300</b><small>创意影响奖 · 每月1-2个名额 / Idea Impact Award, 1-2 slots/month</small></div>
+      <div class="prize">🏅 <b>RM300</b><small>持续贡献奖 · 每月第1名 / Consistent Contribution, Monthly #1</small></div>
     </div>
     <div class="rules">
-      📌 <b>规则 / Rules:</b> 按有效反馈数量排名，按月发奖 · 全员统一评奖 · 有效反馈=必填完整+同商户同场景月内仅计1条 · 单人单季最多领奖2次 · SG按1 MYR≈0.30 SGD换算<br>
-      📌 <b>Ranked by valid feedback count, monthly prizes · Unified ranking for all roles · Valid = all required fields + unique merchant per scenario per month · Max 2 wins/person/quarter · SG: 1 MYR ≈ 0.30 SGD</b>
-    </div>
-    <div class="penalty">
-      ⚠️ <b>作弊处分 / Integrity Penalty:</b> 所有记录进行客户抽查回访核验。发现伪造、编造商户、虚假填报，<b>给予严重警告处分</b>；情节严重或屡教不改者，<b>可能面临解除劳动合同处理</b>，并取消当月竞赛资格、追回已获奖金。<br>
-      <b>Records are randomly verified via merchant callback. Falsified records → severe warning; serious/repeated violations may lead to termination, plus disqualification and prize clawback.</b>
+      📌 <b>创意影响奖 / Idea Impact Award：</b>你随手记下的一个点子，可能就是产品下一次进化的起点。只要被产品团队选中并真正落地，就能拿到 <b>RM200–300</b>（每月1-2个名额，视实际建议质量而定）——我们最想看到的，是能让客户用起来更顺手、流程更高效的想法，尤其欢迎能解决关键 bug、或是让新客户更快上手的前瞻性思路。别小看一句话的分量，它可能正在悄悄改变很多人使用产品的方式。<br>
+      <b>That idea you jot down without thinking twice could be the spark for what we build next. If the Product Team picks it up and ships it, you'll earn RM200–300 (1-2 slots per month, depending on the quality of ideas submitted). We're especially excited about ideas that make the product smoother to use or the process more efficient — critical bug fixes and forward-thinking features (like faster onboarding) get extra love. Never underestimate one good sentence — it might quietly reshape how everyone experiences the product next.</b><br><br>
+      📌 <b>持续贡献奖 / Consistent Contribution Award：</b>每月最活跃的第1名贡献者获得 RM300，基于经核实、可执行的有效提交（不含重复或低质量条目），旨在鼓励持续输入的文化，尤其是销售团队的积极参与。<br>
+      <b>The most active contributor each month receives RM300, based on verified, actionable submissions (not duplicates or low-effort entries) — designed to reinforce a culture of continuous input, especially among sales staff.</b><br><br>
+      📌 SG按 1 MYR ≈ 0.30 SGD 换算 / SG: 1 MYR ≈ 0.30 SGD
     </div>
   </div>
 
@@ -162,8 +187,9 @@ textarea{resize:vertical;min-height:60px}
         <div class="hint" id="hint_acct">购买成功/已购买/部署场景必填，其他选填 / Required for purchase success, purchased, or deployment; optional otherwise</div>
       </div>
       <div class="form-group">
-        <label>填写人 / Submitter <span class="req">*</span> <span id="loginHint" style="font-size:11px;color:var(--success);font-weight:400"></span></label>
-        <input type="text" id="f_submitter" placeholder="Your name">
+        <label>员工邮箱 / Employee Email <span class="req">*</span> <span id="loginHint" style="font-size:11px;color:var(--success);font-weight:400"></span></label>
+        <input type="email" id="f_submitter" placeholder="your.name@epos.com 或 your.name@ant-intl.com">
+        <div class="hint">因表单为公开链接，为便于核实是真实 EPOS 员工，请填写以 @epos.com 或 @ant-intl.com 结尾的员工邮箱；非员工邮箱提交仍会被记录，但可能不计入最终评奖名单 / As this form is publicly accessible, please use an employee email ending in @epos.com or @ant-intl.com — other emails will still be recorded but may not be counted toward final awards</div>
       </div>
       <div class="form-group">
         <label>填写人角色 / Your Role <span class="req">*</span></label>
@@ -179,6 +205,13 @@ textarea{resize:vertical;min-height:60px}
         <label>客户从哪个渠道听说我们 / How did customer hear about us? <span class="req">*</span></label>
         <div class="radio-group" data-key="channel" id="g_channel">
           <span class="radio-item">YouTube</span><span class="radio-item">TIKTOK</span><span class="radio-item">小红书 Xiaohongshu</span><span class="radio-item">Google搜索 Google Search</span><span class="radio-item">EPOS官网 EPOS Website</span><span class="radio-item">Facebook·Instagram</span><span class="radio-item">朋友推荐 Referral</span><span class="radio-item">线下活动 Offline Event</span><span class="radio-item">销售上门或SDR Direct Sales/SDR</span><span class="radio-item">已用其他EPOS Existing User</span><span class="radio-item">其他 Other</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>客户当前使用的 POS/收银系统 Saas系统 / Current POS/Saas System <span class="req">*</span></label>
+        <div class="radio-group" data-key="current_pos" id="g_currentpos">
+          <span class="radio-item">FeedMe</span><span class="radio-item">StoreHub</span><span class="radio-item">Qashier</span><span class="radio-item">Eats365</span><span class="radio-item">Slurp</span><span class="radio-item">Klikit</span><span class="radio-item">GogmGo</span><span class="radio-item">warely pos</span><span class="radio-item">epoint</span><span class="radio-item">sgdatapos</span><span class="radio-item">raptor</span><span class="radio-item">rewardly</span><span class="radio-item">lunchbox</span><span class="radio-item">8pos</span><span class="radio-item">vivipos</span><span class="radio-item">qlub</span><span class="radio-item">其他 Other</span>
         </div>
       </div>
 
@@ -242,13 +275,12 @@ textarea{resize:vertical;min-height:60px}
       </div>
 
       <div class="form-group">
-        <label>推荐理由 / Recommend Reason <span class="opt">(选填)</span></label>
-        <textarea id="f_rec_reason" placeholder="Why would they recommend? (optional)"></textarea>
+        <label>不推荐理由 / Why not recommend? <span class="req" id="req_norec" style="display:none">*</span> <span class="opt" id="opt_norec">(NPS 0-5分时必填)</span></label>
+        <textarea id="f_no_rec_reason" placeholder="NPS 0-5分时必填 / Required for NPS 0-5"></textarea>
       </div>
-
       <div class="form-group">
-        <label>不推荐理由 / Not Recommend Reason <span class="opt">(选填)</span></label>
-        <textarea id="f_no_rec_reason" placeholder="Why would they NOT recommend? (optional)"></textarea>
+        <label>推荐理由 / Why recommend? <span class="req" id="req_rec" style="display:none">*</span> <span class="opt" id="opt_rec">(NPS 9-10分时必填)</span></label>
+        <textarea id="f_rec_reason" placeholder="NPS 9-10分时必填 / Required for NPS 9-10"></textarea>
       </div>
 
       <div class="section-divider">客户原声 / Verbatim</div>
@@ -256,16 +288,16 @@ textarea{resize:vertical;min-height:60px}
         <label>客户原话 / Customer Verbatim <span class="opt">(选填 optional)</span></label>
         <textarea id="f_verbatim" placeholder="一句话引用客户原话(中/英/BM) / One quote from customer"></textarea>
         <div class="hint" style="background:linear-gradient(135deg,#fff7e6,#fff1f0);border:1px solid #ffd591;border-radius:8px;padding:10px 12px;margin-top:8px;color:#874d00">
-          🌟 <b>质量奖等你拿 / Quality Award Awaits:</b> 高质量的客户原声与真实反馈，将有机会获得<b>月度质量奖（200 MYR）</b>并被管理层看见和表彰。请如实、积极地记录客户声音——你的每一条反馈都可能被管理层看见！<br>
-          <b>High-quality verbatim & authentic feedback may win the Monthly Quality Award (200 MYR) and be seen & recognized by management. Please capture customer voices truthfully and proactively — every feedback you submit could be spotlighted by management!</b>
+          🌟 <b>真实声音，值得被听见 / Every Voice Deserves to Be Heard:</b> 高质量、真实的客户原声会被管理层看见，也会计入你的<b>持续贡献奖</b>候选资格。请如实、积极地记录客户声音！<br>
+          <b>High-quality, authentic verbatim gets seen by management and counts toward your Consistent Contribution Award eligibility. Please capture customer voices truthfully and proactively!</b>
         </div>
       </div>
       <div class="form-group">
         <label>改进建议 / Improvement Suggestions <span class="opt">(选填 optional)</span></label>
         <textarea id="f_suggestion" placeholder="客户对产品或服务有什么改进建议？/ Any suggestions to improve our product or service?"></textarea>
         <div class="hint" style="background:linear-gradient(135deg,#fff7e6,#fff1f0);border:1px solid #ffd591;border-radius:8px;padding:10px 12px;margin-top:8px;color:#874d00">
-          💡 <b>你的建议很有价值 / Your Suggestions Matter:</b> 无论是功能优化、服务体验还是新需求，欢迎如实记录——优质建议同样有机会获得<b>月度质量奖（200 MYR）</b>并被管理层看见和表彰！<br>
-          <b>Features, service experience, or new needs — quality suggestions may also win the Monthly Quality Award (200 MYR) and be seen & recognized by management!</b>
+          💡 <b>好点子，值得被看见 / A Good Idea Deserves to Be Seen:</b> 被产品团队采纳并落地实施的建议，会入选<b>创意影响奖</b>——无论是功能优化、服务体验还是让人眼前一亮的新点子，欢迎如实记录，你可能正在帮下一位客户少走弯路！<br>
+          <b>Ideas selected by the Product Team for implementation earn an Idea Impact Award. Feature tweaks, service experience, or that one idea that makes you go "why didn't we do this sooner" — write it down, you might be saving the next customer a headache!</b>
         </div>
       </div>
       <div class="form-group">
@@ -292,18 +324,18 @@ textarea{resize:vertical;min-height:60px}
   <!-- 排行榜 -->
   <div class="form-section" id="sec-L">
     <div class="card">
-      <div class="card-title">🏆 月度反馈竞赛排行 / Monthly Leaderboard</div>
+      <div class="card-title">🏆 持续贡献奖排行 / Consistent Contribution Leaderboard</div>
       <div class="card-sub">按有效反馈数量排名 · Ranked by valid feedback count</div>
       <div class="hint" style="background:linear-gradient(135deg,#e8f3ff,#f0f5fa);border:1px solid #bae0ff;border-radius:10px;padding:14px;margin-bottom:14px;color:#0c6cbf;font-size:12px;line-height:1.8">
-        📌 <b>竞赛规则 / Contest Rules:</b><br>
-        · 按有效反馈数量排名，按月发奖 / Ranked by valid feedback count, monthly prizes<br>
-        · 全员统一评奖，可按角色筛选查看 / Unified ranking for all roles, filter by role to view<br>
+        📌 <b>持续贡献奖规则 / Consistent Contribution Award Rules:</b><br>
+        · 每月最活跃的第1名贡献者获得 RM300 / The most active contributor monthly receives RM300<br>
+        · 基于经核实、可执行的有效提交，重复或低质量条目不计入 / Based on verified, actionable submissions — duplicates or low-effort entries excluded<br>
+        · 全员统一评奖，可按角色/市场筛选查看 / Unified ranking for all roles, filter by role/market to view<br>
         · 有效反馈=必填完整+同商户同场景月内仅计1条 / Valid = all required fields + unique merchant per scenario per month<br>
-        · 单人单季最多领奖2次 / Max 2 wins per person per quarter<br>
         · SG按 1 MYR ≈ 0.30 SGD 换算 / SG: 1 MYR ≈ 0.30 SGD<br>
         <br>
-        ⚠️ <b>说明 / Note:</b> 本排行榜按反馈<b>数量</b>展示，仅供参考。正式评奖还需结合反馈<b>质量</b>（客户原声、改进建议的价值等）综合评估，最终结果以管理层公布为准。<br>
-        <b>This leaderboard shows feedback volume for reference only. Final awards also consider feedback quality (verbatim, suggestion value, etc.). Official results are subject to management review.</b>
+        💡 <b>提示 / Note:</b> 被产品团队采纳并实施的建议，另有机会获得 <b>RM200–300 创意影响奖</b>（不计入本榜单，由产品团队单独评估）。参与完全自愿，最终结果以管理层公布为准。<br>
+        <b>Ideas selected by the Product Team for implementation may separately earn an RM200–300 Idea Impact Award (not reflected on this board, evaluated by the Product Team). Participation is voluntary; official results are subject to management review.</b>
       </div>
       <div class="form-group">
         <label>角色筛选 / Role Filter</label>
@@ -346,6 +378,26 @@ textarea{resize:vertical;min-height:60px}
 
 <div class="toast" id="toast">✓ 提交成功 Submitted!</div>
 
+<div class="thankyou-overlay" id="thankyouOverlay">
+  <div class="thankyou-card">
+    <div class="thankyou-check">✓</div>
+    <div class="thankyou-title">感谢参与！Thank You for Your Feedback!</div>
+    <div class="thankyou-sub">
+      你的反馈已成功记录，每一条真实的客户声音都在帮助 EPOS 做得更好 🙌<br>
+      Your feedback has been recorded. Every voice you capture helps EPOS get better — thank you for showing up for our customers.<br>
+      持续参与有机会拿下每月<b>持续贡献奖 第1名（RM300）</b>；如果你的建议被产品团队采纳实施，还能拿下 <b>创意影响奖（RM200–300）</b>！
+    </div>
+    <div class="thankyou-lb-title">
+      🏆 当前排行榜 · Live Leaderboard <span class="refresh" id="thankyouRefresh">🔄 刷新 Refresh</span>
+    </div>
+    <div id="thankyouLeaderboard"><div class="empty">加载中... Loading...</div></div>
+    <div class="thankyou-actions">
+      <button class="thankyou-btn-secondary" id="thankyouViewFull">查看完整榜单 View Full Board</button>
+      <button class="thankyou-btn-primary" id="thankyouContinue">继续提交一条 Submit Another</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ============================================
 // 请把下面这行换成你自己部署的 Google Apps Script 网址
@@ -354,7 +406,20 @@ textarea{resize:vertical;min-height:60px}
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwGpEvklBhb_sSBOtv7F0JmKX4B9kXQy1s1tOHcYtYDnoQQ7ug2GLnziyAJ5Iq0eBRG/exec';
 
 const npsG=document.getElementById('g_nps');
-for(let i=0;i<=10;i++){const b=document.createElement('button');b.className='nps-btn';b.textContent=i;b.onclick=()=>{npsG.querySelectorAll('.nps-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');npsG.dataset.val=i;};npsG.appendChild(b);}
+for(let i=0;i<=10;i++){const b=document.createElement('button');b.className='nps-btn';b.textContent=i;b.onclick=()=>{npsG.querySelectorAll('.nps-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');npsG.dataset.val=i;updateNpsReasonReq();};npsG.appendChild(b);}
+function updateNpsReasonReq(){
+  const val=npsG.dataset.val;
+  const n=val===undefined||val===''?null:parseInt(val,10);
+  const reqNoRec=document.getElementById('req_norec'),optNoRec=document.getElementById('opt_norec');
+  const reqRec=document.getElementById('req_rec'),optRec=document.getElementById('opt_rec');
+  const needNoRec=(n!==null&&n<=5);
+  const needRec=(n!==null&&n>=9);
+  if(reqNoRec){reqNoRec.style.display=needNoRec?'inline':'none';}
+  if(optNoRec){optNoRec.textContent=needNoRec?'(必填 required)':'(NPS 0-5分时必填 / optional otherwise)';}
+  if(reqRec){reqRec.style.display=needRec?'inline':'none';}
+  if(optRec){optRec.textContent=needRec?'(必填 required)':'(NPS 9-10分时必填 / optional otherwise)';}
+}
+updateNpsReasonReq();
 
 function isOtherItem(item){const t=item.textContent.trim();return t==='其他 Other'||t==='其他'||t==='Other'||t.indexOf('其他 Other')>=0;}
 function ensureOtherBox(group){
@@ -573,12 +638,80 @@ document.querySelectorAll('.tab').forEach(t=>{
     document.querySelectorAll('.form-section').forEach(s=>s.classList.remove('active'));
     document.getElementById('sec-'+t.dataset.target).classList.add('active');
     window.scrollTo({top:0,behavior:'smooth'});
+    toggleProgressVisibility(t.dataset.target==='F');
   };
 });
 
 function gv(id){const el=document.getElementById(id);return el?el.value.trim():'';}
 function gg(group){let v=group.dataset.val||'';const fg=group.closest('.form-group')||group.parentNode;const box=fg&&fg.querySelector('.other-box');if(box&&box.value.trim()){v=v+': '+box.value.trim();}return v;}
 function gc(group){let v=[...group.querySelectorAll('.selected')].map(x=>x.textContent).join('; ');const fg=group.closest('.form-group')||group.parentNode;const box=fg&&fg.querySelector('.other-box');if(box&&box.value.trim()){v=v+' (其他: '+box.value.trim()+')';}return v;}
+
+// 左侧进度条：统计当前"必填项"里已经填写了多少
+function toggleProgressVisibility(show){
+  const rail=document.getElementById('progressRail'),badge=document.getElementById('progressBadge');
+  if(rail){rail.classList.toggle('hide',!show);}
+  if(badge){badge.classList.toggle('hide',!show);}
+}
+function updateProgressBar(){
+  const items=[];
+  const push=(val)=>items.push(!!(val&&String(val).trim()!==''));
+  push(curScenario);
+  push(gv('f_merchant'));
+  push(gg(document.getElementById('g_market')));
+  push(gg(document.getElementById('g_industry')));
+  push(gv('f_submitter'));
+  push(gg(document.getElementById('g_role')));
+  push(gg(document.getElementById('g_channel')));
+  push(gg(document.getElementById('g_currentpos')));
+  const purchasedVal=gg(document.getElementById('g_purchased'));
+  push(purchasedVal);
+  push(gc(document.getElementById('g_fav')));
+  push(gc(document.getElementById('g_least')));
+  const npsVal=gg(document.getElementById('g_nps'));
+  push(npsVal);
+
+  const purchased=isPurchasedVal(purchasedVal);
+  const onTrial=(purchasedVal.indexOf('试用')>=0||purchasedVal.indexOf('Trial')>=0);
+  if(purchased||onTrial){push(gg(document.getElementById('g_usage')));}
+
+  const outcomeVal=curScenario==='sales'?gg(document.getElementById('g_outcome')):'';
+  const isLost=(outcomeVal.indexOf('失单')>=0||outcomeVal.indexOf('Lost')>=0||outcomeVal.indexOf('拒绝')>=0||outcomeVal.indexOf('Rejected')>=0);
+  if(!isLost){push(gv('f_phone'));}
+
+  const isWon=(outcomeVal.indexOf('购买成功')>=0||outcomeVal.indexOf('Purchased')>=0);
+  const acctRequired=(curScenario==='sales'&&isWon)||purchased||(curScenario==='deployment');
+  if(acctRequired){push(gv('f_acct'));}
+
+  let needBuy=false,needNoBuy=false;
+  if(curScenario==='sales'){
+    if(outcomeVal.indexOf('购买成功')>=0||outcomeVal.indexOf('Purchased')>=0){needBuy=true;}
+    if(outcomeVal.indexOf('失单')>=0||outcomeVal.indexOf('Lost')>=0||outcomeVal.indexOf('拒绝')>=0||outcomeVal.indexOf('Rejected')>=0){needNoBuy=true;}
+  }else{
+    if(purchased){needBuy=true;}
+    if(isNotPurchasedVal(purchasedVal)){needNoBuy=true;}
+  }
+  if(needBuy){push(gc(document.getElementById('g_buyreason')));}
+  if(needNoBuy){push(gc(document.getElementById('g_nobuy')));}
+  if(curScenario==='sales'){push(outcomeVal);}
+
+  const npsNum=parseInt(npsVal,10);
+  if(!isNaN(npsNum)){
+    if(npsNum<=5){push(gv('f_no_rec_reason'));}
+    if(npsNum>=9){push(gv('f_rec_reason'));}
+  }
+
+  const total=items.length;
+  const filled=items.filter(Boolean).length;
+  const pct=total?Math.round(filled/total*100):0;
+  const fillEl=document.getElementById('progressFill');
+  const badgeEl=document.getElementById('progressBadge');
+  if(fillEl){fillEl.style.height=pct+'%';}
+  if(badgeEl){badgeEl.textContent=pct+'% 已完成';}
+}
+// 表单区域内任何点击(选项/按钮)或输入(文本框)都触发一次进度重算
+document.getElementById('sec-F').addEventListener('input',updateProgressBar);
+document.getElementById('sec-F').addEventListener('click',()=>{setTimeout(updateProgressBar,0);});
+updateProgressBar();
 
 function collectData(){
   return {
@@ -593,6 +726,7 @@ function collectData(){
     submitter:gv('f_submitter'),
     role:gg(document.getElementById('g_role')),
     channel:gg(document.getElementById('g_channel')),
+    current_pos:gg(document.getElementById('g_currentpos')),
     purchased:gg(document.getElementById('g_purchased')),
     usage_duration:gg(document.getElementById('g_usage')),
     fav_feature:gc(document.getElementById('g_fav')),
@@ -615,7 +749,7 @@ function isPurchasedVal(v){return (v.indexOf('已购买')>=0)||(v.indexOf('Purch
 function isNotPurchasedVal(v){return v.indexOf('未购买')>=0||v.indexOf('Not Purchased')>=0||(v.indexOf('Not')>=0&&v.indexOf('Purchased')>=0);}
 function validate(d){
   if(!curScenario){alert('请选择业务场景 / Select scenario');return false;}
-  const base=['merchant','market','industry','submitter','role','channel','purchased','fav_feature','least_feature','nps'];
+  const base=['merchant','market','industry','submitter','role','channel','current_pos','purchased','fav_feature','least_feature','nps'];
   for(const k of base){if(!d[k]){alert('请填写必填字段: '+k+'\nPlease fill: '+k);return false;}}
   const purchased=isPurchasedVal(d.purchased);
   const onTrial=(d.purchased.indexOf('试用')>=0||d.purchased.indexOf('Trial')>=0);
@@ -643,6 +777,12 @@ function validate(d){
   }
   if(needBuy&&!d.buy_reason){alert('购买成功请填写购买原因 / Fill purchase reason');return false;}
   if(needNoBuy&&!d.no_buy_reason){alert('失单/未购买请填写不购买原因 / Fill no-buy reason');return false;}
+  // 推荐理由/不推荐理由：按NPS打分联动必填
+  const npsNum=parseInt(d.nps,10);
+  if(!isNaN(npsNum)){
+    if(npsNum<=5&&!d.no_rec_reason){alert('NPS 0-5分请填写不推荐理由 / Please fill "Why not recommend" for NPS 0-5');return false;}
+    if(npsNum>=9&&!d.rec_reason){alert('NPS 9-10分请填写推荐理由 / Please fill "Why recommend" for NPS 9-10');return false;}
+  }
   if(curScenario==='sales'&&!d.outcome){alert('请选择本次结果 / Select outcome');return false;}
   // 角色选"其他"时，其他文本框必填
   if(d.role&&d.role.indexOf('其他')>=0&&d.role.indexOf(':')<0){
@@ -695,12 +835,12 @@ async function submitForm(){
     try{localStorage.setItem('epos_submitter',d.submitter);}catch(e){/*忽略*/}
   }
   if(btn){btn.disabled=false;btn.textContent='提交 Submit';}
-  showToast('✓ 提交成功 Submitted!');
   resetForm();
   try{
     const remembered=localStorage.getItem('epos_submitter')||'';
     if(remembered){document.getElementById('f_submitter').value=remembered;}
   }catch(e){/*忽略*/}
+  showThankYouModal();
   renderRecords();renderLeaderboard();
 }
 
@@ -715,6 +855,8 @@ function resetForm(){
   document.getElementById('req_acct').style.display='inline';
   updateContactReq();
   updateBuyReasonReq();
+  updateNpsReasonReq();
+  updateProgressBar();
 }
 
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
@@ -753,15 +895,11 @@ function clearAll(){
 }
 
 function isValidRecord(r){
-  // 有效反馈: 必填字段完整即可(verbatim 现为选填，但有 verbatim 的优先计入质量奖候选)
+  // 有效反馈: 必填字段完整即可(verbatim 现为选填，但有 verbatim 的优先计入持续贡献奖候选)
   return r.merchant&&r.submitter&&r.channel&&r.purchased&&r.fav_feature&&r.least_feature&&r.nps;
 }
-async function renderLeaderboard(){
-  const role=document.getElementById('lbRoleFilter').dataset.val||'ALL';
-  const market=document.getElementById('lbMarketFilter').dataset.val||'ALL';
-  const box=document.getElementById('leaderboard');
-  box.innerHTML='<div class="empty">加载中... Loading...</div>';
-  const records=await fetchAllRecords();
+function computeRanked(records,role,market){
+  role=role||'ALL';market=market||'ALL';
   const seen=new Set();const stats={};
   records.forEach(r=>{
     if(!isValidRecord(r))return;
@@ -772,15 +910,52 @@ async function renderLeaderboard(){
     const month=(r.timestamp||'').slice(0,7);
     const key=r.submitter+'|'+r.merchant+'|'+r.scenario+'|'+month;
     if(seen.has(key))return;seen.add(key);
-    const name=r.submitter||'Unknown';
+    // 排行榜展示时只取邮箱@前面的名称部分，不展示完整邮箱
+    const rawName=r.submitter||'Unknown';
+    const name=rawName.indexOf('@')>=0?rawName.split('@')[0]:rawName;
     if(!stats[name]){stats[name]={count:0,role:rl||'-'};}
     stats[name].count++;
   });
-  const ranked=Object.entries(stats).map(([name,s])=>({name,role:s.role,count:s.count})).sort((a,b)=>b.count-a.count);
-  if(ranked.length===0){box.innerHTML='<div class="empty">暂无有效数据 / No data yet</div>';return;}
-  const prizeRank=(idx)=>{if(idx===0)return{medal:'🥇',prize:'500 MYR'};if(idx>=1&&idx<=3)return{medal:'🥈',prize:'200 MYR'};if(idx>=4&&idx<=8)return{medal:'🥉',prize:'100 MYR'};return{medal:(idx+1),prize:'—'};};
-  box.innerHTML=ranked.map((e,i)=>{const p=prizeRank(i);return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:${i===0?'#fffbe6':i<=3?'#fff7e6':i<=13?'#fffaf2':'#fff'};border:1px solid ${i===0?'#ffd666':i<=3?'#ffd591':i<=13?'#ffe7ba':'var(--border)'};border-radius:10px;margin-bottom:8px"><div style="min-width:36px;text-align:center;font-size:18px;font-weight:700;color:#d46b08">${p.medal}</div><div style="flex:1"><b>${e.name}</b> <span style="font-size:11px;color:#0c6cbf;background:#e8f3ff;padding:2px 8px;border-radius:10px;margin-left:4px">${e.role}</span><br><span style="font-size:12px;color:var(--text-3)">${e.count} 条 feedbacks</span></div><div style="font-size:13px;font-weight:700;color:${p.prize==='—'?'var(--text-3)':'#d46b08'}">${p.prize}</div></div>`;}).join('');
+  return Object.entries(stats).map(([name,s])=>({name,role:s.role,count:s.count})).sort((a,b)=>b.count-a.count);
 }
+function renderRankedHTML(ranked,limit){
+  const list=limit?ranked.slice(0,limit):ranked;
+  if(list.length===0)return '<div class="empty">暂无有效数据 / No data yet</div>';
+  const medal=(idx)=>{if(idx===0)return '🥇';if(idx>=1&&idx<=3)return '🥈';if(idx>=4&&idx<=8)return '🥉';return (idx+1);};
+  return list.map((e,i)=>{return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:${i===0?'#fffbe6':i<=3?'#fff7e6':i<=13?'#fffaf2':'#fff'};border:1px solid ${i===0?'#ffd666':i<=3?'#ffd591':i<=13?'#ffe7ba':'var(--border)'};border-radius:10px;margin-bottom:8px"><div style="min-width:36px;text-align:center;font-size:18px;font-weight:700;color:#d46b08">${medal(i)}</div><div style="flex:1"><b>${e.name}</b> <span style="font-size:11px;color:#0c6cbf;background:#e8f3ff;padding:2px 8px;border-radius:10px;margin-left:4px">${e.role}</span><br><span style="font-size:12px;color:var(--text-3)">${e.count} 条 feedbacks</span></div></div>`;}).join('');
+}
+async function renderLeaderboard(){
+  const role=document.getElementById('lbRoleFilter').dataset.val||'ALL';
+  const market=document.getElementById('lbMarketFilter').dataset.val||'ALL';
+  const box=document.getElementById('leaderboard');
+  box.innerHTML='<div class="empty">加载中... Loading...</div>';
+  const records=await fetchAllRecords();
+  const ranked=computeRanked(records,role,market);
+  box.innerHTML=renderRankedHTML(ranked);
+}
+async function renderThankYouLeaderboard(){
+  const box=document.getElementById('thankyouLeaderboard');
+  box.innerHTML='<div class="empty">加载中... Loading...</div>';
+  const records=await fetchAllRecords();
+  const ranked=computeRanked(records,'ALL','ALL');
+  box.innerHTML=renderRankedHTML(ranked,5);
+}
+function showThankYouModal(){
+  document.getElementById('thankyouOverlay').classList.add('show');
+  renderThankYouLeaderboard();
+}
+function hideThankYouModal(){
+  document.getElementById('thankyouOverlay').classList.remove('show');
+}
+document.getElementById('thankyouRefresh').onclick=renderThankYouLeaderboard;
+document.getElementById('thankyouContinue').onclick=()=>{
+  hideThankYouModal();
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+document.getElementById('thankyouViewFull').onclick=()=>{
+  hideThankYouModal();
+  document.querySelector('.tab[data-target="L"]').click();
+};
 document.querySelectorAll('#lbRoleFilter .radio-item').forEach(item=>{item.onclick=()=>{document.querySelectorAll('#lbRoleFilter .radio-item').forEach(x=>x.classList.remove('selected'));item.classList.add('selected');document.getElementById('lbRoleFilter').dataset.val=item.dataset.role;renderLeaderboard();};});
 document.querySelectorAll('#lbMarketFilter .radio-item').forEach(item=>{item.onclick=()=>{document.querySelectorAll('#lbMarketFilter .radio-item').forEach(x=>x.classList.remove('selected'));item.classList.add('selected');document.getElementById('lbMarketFilter').dataset.val=item.dataset.market;renderLeaderboard();};});
 
