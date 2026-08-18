@@ -19,6 +19,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 .header h1{font-size:24px;margin-bottom:6px;font-weight:700}
 .header p{font-size:13px;opacity:.92}
 .header .lang{margin-top:10px;font-size:12px;opacity:.85}
+.loop-banner{background:var(--primary-light);border:1px solid #bae0ff;border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;font-size:12px;color:#0c6cbf;line-height:1.7}
+.loop-banner b{color:#0958d9}
 .incentive-banner{background:linear-gradient(135deg,#fff7e6 0%,#fff1f0 100%);border:2px solid #ffd591;border-radius:var(--radius);padding:20px;margin-bottom:20px;box-shadow:0 4px 12px rgba(255,213,145,.3)}
 .incentive-banner h2{font-size:16px;color:#d46b08;margin-bottom:12px;text-align:center}
 .incentive-banner .prizes{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}
@@ -111,18 +113,23 @@ textarea{resize:vertical;min-height:60px}
     <div class="lang">Bilingual 中英双语 · Malaysia & Singapore</div>
   </div>
 
+  <div class="loop-banner">
+    🔁 <b>你的声音，正在被认真对待 / Your Voice Is Heard：</b>每周汇总，产出洞察报告同步给产品、运营团队。<br>
+    <b>Compiled weekly into an insight report and shared with Product and Ops.</b>
+  </div>
+
   <!-- 奖惩制度置顶 -->
   <div class="incentive-banner">
     <h2>🏆 一线反馈激励机制 / Frontline Feedback Incentive Framework</h2>
     <div class="prizes">
-      <div class="prize">💡 <b>RM200–300</b><small>创意影响奖 · 每月1-2个名额 / Idea Impact Award, 1-2 slots/month</small></div>
-      <div class="prize">🏅 <b>RM300</b><small>持续贡献奖 · 每月第1名 / Consistent Contribution, Monthly #1</small></div>
+      <div class="prize">💡 <b>RM200–300</b><small>创意影响奖 · 每月最多2个 / Idea Impact Award, up to 2/month</small></div>
+      <div class="prize">🏅 <b>RM300</b><small>持续贡献奖 · 每月前5名 / Consistent Contribution, Top 5 monthly</small></div>
     </div>
     <div class="rules">
-      📌 <b>创意影响奖 / Idea Impact Award：</b>你随手记下的一个点子，可能就是产品下一次进化的起点。只要被产品团队选中并真正落地，就能拿到 <b>RM200–300</b>（每月1-2个名额，视实际建议质量而定）——我们最想看到的，是能让客户用起来更顺手、流程更高效的想法，尤其欢迎能解决关键 bug、或是让新客户更快上手的前瞻性思路。别小看一句话的分量，它可能正在悄悄改变很多人使用产品的方式。<br>
-      <b>That idea you jot down without thinking twice could be the spark for what we build next. If the Product Team picks it up and ships it, you'll earn RM200–300 (1-2 slots per month, depending on the quality of ideas submitted). We're especially excited about ideas that make the product smoother to use or the process more efficient — critical bug fixes and forward-thinking features (like faster onboarding) get extra love. Never underestimate one good sentence — it might quietly reshape how everyone experiences the product next.</b><br><br>
-      📌 <b>持续贡献奖 / Consistent Contribution Award：</b>每月最活跃的第1名贡献者获得 RM300，基于经核实、可执行的有效提交（不含重复或低质量条目），旨在鼓励持续输入的文化，尤其是销售团队的积极参与。<br>
-      <b>The most active contributor each month receives RM300, based on verified, actionable submissions (not duplicates or low-effort entries) — designed to reinforce a culture of continuous input, especially among sales staff.</b><br><br>
+      📌 <b>创意影响奖 / Idea Impact Award：</b>你随手记下的一个点子，可能就是产品下一次进化的起点。只要被产品团队选中并真正落地，就能拿到 <b>RM200–300</b>（每月最多2个名额，具体评奖由产品团队评审）——我们最想看到的，是能让客户用起来更顺手、流程更高效的想法，尤其欢迎能解决关键 bug、或是让新客户更快上手的前瞻性思路。别小看一句话的分量，它可能正在悄悄改变很多人使用产品的方式。<br>
+      <b>That idea you jot down without thinking twice could be the spark for what we build next. If the Product Team picks it up and ships it, you'll earn RM200–300 (up to 2 per month, reviewed and decided by the Product Team). We're especially excited about ideas that make the product smoother to use or the process more efficient — critical bug fixes and forward-thinking features (like faster onboarding) get extra love. Never underestimate one good sentence — it might quietly reshape how everyone experiences the product next.</b><br><br>
+      📌 <b>持续贡献奖 / Consistent Contribution Award：</b>每月最活跃的前5名贡献者各获得 RM300，基于经核实、可执行的有效提交（不含重复或低质量条目），旨在鼓励持续输入的文化，尤其是销售团队的积极参与。<br>
+      <b>Top 5 most active contributors monthly receive RM300 each, based on verified, actionable submissions (not duplicates or low-effort entries) — designed to reinforce a culture of continuous input, especially among sales staff.</b><br><br>
       📌 SG按 1 MYR ≈ 0.30 SGD 换算 / SG: 1 MYR ≈ 0.30 SGD
     </div>
     <div class="penalty">
@@ -254,7 +261,7 @@ textarea{resize:vertical;min-height:60px}
       <div class="form-group">
         <label>购买/使用我们的原因 / Reason to purchase/use <span class="req" id="req_buy">*</span> <span class="opt" id="opt_buy">(已购买必填)</span> <span class="counter">最多3项 / max 3</span></label>
         <div class="check-group" data-key="buy_reason" data-max="3" id="g_buyreason">
-          <span class="check-item">信任品牌 Brand Trust</span><span class="check-item">数字化转型 Digital Transformation</span><span class="check-item">提升效率 Efficiency</span><span class="check-item">增加营收 Revenue Growth</span><span class="check-item">功能齐全 Complete Features</span><span class="check-item">AI能力 AI</span><span class="check-item">价格可负担 Affordable</span><span class="check-item">替代现有竞品 Switch from Competitor</span><span class="check-item">一站式全包 All-in-one</span><span class="check-item">其他 Other</span>
+          <span class="check-item">信任品牌 Brand Trust</span><span class="check-item">数字化转型 Digital Transformation</span><span class="check-item">提升效率 Efficiency</span><span class="check-item">增加营收 Revenue Growth</span><span class="check-item">本地合规支持(如电子发票) Local Compliance (e.g. e-Invoice)</span><span class="check-item">AI能力 AI</span><span class="check-item">价格可负担 Affordable</span><span class="check-item">替代现有竞品 Switch from Competitor</span><span class="check-item">一站式全包 All-in-one</span><span class="check-item">其他 Other</span>
         </div>
       </div>
 
@@ -332,7 +339,7 @@ textarea{resize:vertical;min-height:60px}
       <div class="card-sub">按有效反馈数量排名 · Ranked by valid feedback count</div>
       <div class="hint" style="background:linear-gradient(135deg,#e8f3ff,#f0f5fa);border:1px solid #bae0ff;border-radius:10px;padding:14px;margin-bottom:14px;color:#0c6cbf;font-size:12px;line-height:1.8">
         📌 <b>持续贡献奖规则 / Consistent Contribution Award Rules:</b><br>
-        · 每月最活跃的第1名贡献者获得 RM300 / The most active contributor monthly receives RM300<br>
+        · 每月最活跃的前5名贡献者各获得 RM300 / Top 5 most active contributors monthly receive RM300 each<br>
         · 基于经核实、可执行的有效提交，重复或低质量条目不计入 / Based on verified, actionable submissions — duplicates or low-effort entries excluded<br>
         · 全员统一评奖，可按角色/市场筛选查看 / Unified ranking for all roles, filter by role/market to view<br>
         · 有效反馈=必填完整+同商户同场景月内仅计1条 / Valid = all required fields + unique merchant per scenario per month<br>
@@ -389,7 +396,7 @@ textarea{resize:vertical;min-height:60px}
     <div class="thankyou-sub">
       你的反馈已成功记录，每一条真实的客户声音都在帮助 EPOS 做得更好 🙌<br>
       Your feedback has been recorded. Every voice you capture helps EPOS get better — thank you for showing up for our customers.<br>
-      持续参与有机会拿下每月<b>持续贡献奖 第1名（RM300）</b>；如果你的建议被产品团队采纳实施，还能拿下 <b>创意影响奖（RM200–300）</b>！
+      持续参与有机会入选每月<b>持续贡献奖 Top 5（RM300）</b>；如果你的建议被产品团队采纳实施，还能拿下 <b>创意影响奖（RM200–300）</b>！
     </div>
     <div class="thankyou-lb-title">
       🏆 当前排行榜 · Live Leaderboard <span class="refresh" id="thankyouRefresh">🔄 刷新 Refresh</span>
