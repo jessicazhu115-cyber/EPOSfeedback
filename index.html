@@ -214,9 +214,9 @@ textarea{resize:vertical;min-height:60px}
       <div class="section-divider">核心反馈 / Core Feedback</div>
 
       <div class="form-group">
-        <label>客户从哪个渠道听说我们 / How did customer hear about us? <span class="req">*</span></label>
-        <div class="radio-group" data-key="channel" id="g_channel">
-          <span class="radio-item">YouTube</span><span class="radio-item">TIKTOK</span><span class="radio-item">小红书 Xiaohongshu</span><span class="radio-item">Google搜索 Google Search</span><span class="radio-item">EPOS官网 EPOS Website</span><span class="radio-item">Facebook·Instagram</span><span class="radio-item">朋友推荐 Referral</span><span class="radio-item">线下活动 Offline Event</span><span class="radio-item">销售上门或SDR Direct Sales/SDR</span><span class="radio-item">已用其他EPOS Existing User</span><span class="radio-item">其他 Other</span>
+        <label>客户从哪个渠道听说我们 / How did customer hear about us? <span class="req">*</span> <span class="counter">可多选,最多3项 / multi-select, max 3</span></label>
+        <div class="check-group" data-key="channel" data-max="3" id="g_channel">
+          <span class="check-item">YouTube</span><span class="check-item">TIKTOK</span><span class="check-item">小红书 Xiaohongshu</span><span class="check-item">Google搜索 Google Search</span><span class="check-item">EPOS官网 EPOS Website</span><span class="check-item">Facebook·Instagram</span><span class="check-item">朋友推荐 Referral</span><span class="check-item">线下活动 Offline Event</span><span class="check-item">销售上门或SDR Direct Sales/SDR</span><span class="check-item">已用其他EPOS Existing User</span><span class="check-item">其他 Other</span>
         </div>
       </div>
 
@@ -661,7 +661,7 @@ function updateProgressBar(){
   push(gg(document.getElementById('g_industry')));
   push(gv('f_submitter'));
   push(gg(document.getElementById('g_role')));
-  push(gg(document.getElementById('g_channel')));
+  push(gc(document.getElementById('g_channel')));
   push(gg(document.getElementById('g_currentpos')));
   const purchasedVal=gg(document.getElementById('g_purchased'));
   push(purchasedVal);
@@ -723,7 +723,7 @@ function collectData(){
     epos_account:gv('f_acct'),
     submitter:gv('f_submitter'),
     role:gg(document.getElementById('g_role')),
-    channel:gg(document.getElementById('g_channel')),
+    channel:gc(document.getElementById('g_channel')),
     current_pos:gg(document.getElementById('g_currentpos')),
     purchased:gg(document.getElementById('g_purchased')),
     usage_duration:gg(document.getElementById('g_usage')),
