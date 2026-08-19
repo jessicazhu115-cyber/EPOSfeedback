@@ -141,6 +141,7 @@ textarea{resize:vertical;min-height:60px}
 
   <div class="tabs" id="tabs">
     <button class="tab active" data-target="F">📝 反馈表单 Form</button>
+    <button class="tab" data-target="B">🔍 反馈浏览 Browse Feedback</button>
     <button class="tab" data-target="L">🏆 排行榜 Leaderboard</button>
   </div>
 
@@ -334,6 +335,37 @@ textarea{resize:vertical;min-height:60px}
   </div>
 
   <!-- 排行榜 -->
+  <div class="form-section" id="sec-B">
+    <div class="card">
+      <div class="card-title">🔍 反馈浏览 / Browse Feedback</div>
+      <div class="card-sub">想看看其他人怎么说？这里都能找到 · Curious what others are saying? It's all here</div>
+      <div class="hint" style="background:linear-gradient(135deg,#e8f3ff,#f0f5fa);border:1px solid #bae0ff;border-radius:10px;padding:12px 14px;margin-bottom:14px;color:#0c6cbf;font-size:12px;line-height:1.7">
+        这里展示所有人提交的完整反馈（客户联系方式已隐藏）。<br>
+        Shows the full content of everyone's submissions (customer contact info hidden for privacy).
+      </div>
+      <div class="form-group">
+        <label>市场筛选 / Market Filter</label>
+        <div class="radio-group" id="feedMarketFilter" data-val="ALL">
+          <span class="radio-item selected" data-market="ALL">全部 All</span>
+          <span class="radio-item" data-market="MY">MY</span>
+          <span class="radio-item" data-market="SG">SG</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>场景筛选 / Scenario Filter</label>
+        <div class="radio-group" id="feedScenarioFilter" data-val="ALL">
+          <span class="radio-item selected" data-sc="ALL">全部 All</span>
+          <span class="radio-item" data-sc="sales">销售 Sales</span>
+          <span class="radio-item" data-sc="deployment">部署 Deployment</span>
+          <span class="radio-item" data-sc="service">客服 Service</span>
+          <span class="radio-item" data-sc="other">其他 Other</span>
+        </div>
+      </div>
+      <div style="margin:10px 0"><button class="btn-sm" id="feedRefreshBtn">🔄 刷新 Refresh</button></div>
+      <div id="feedList"><div class="empty">点击上方"刷新"加载 / Click Refresh to load</div></div>
+    </div>
+  </div>
+
   <div class="form-section" id="sec-L">
     <div class="card">
       <div class="card-title">🏆 持续贡献奖排行 / Consistent Contribution Leaderboard</div>
@@ -639,6 +671,7 @@ document.querySelectorAll('.tab').forEach(t=>{
     document.getElementById('sec-'+t.dataset.target).classList.add('active');
     window.scrollTo({top:0,behavior:'smooth'});
     toggleProgressVisibility(t.dataset.target==='F');
+    if(t.dataset.target==='B'){renderFeed();}
   };
 });
 
@@ -927,6 +960,65 @@ async function renderLeaderboard(){
   const ranked=computeRanked(records,role,market);
   box.innerHTML=renderRankedHTML(ranked);
 }
+
+// ---- 反馈浏览：给产品/技术/管理层看的完整内容(不含客户联系方式) ----
+function escapeHtml(s){
+  return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function fieldRow(label, value){
+  if(!value)return '';
+  return `<div style="margin-top:6px"><span style="color:var(--text-3);font-size:12px">${label}:</span> <span style="font-size:13px">${escapeHtml(value)}</span></div>`;
+}
+async function renderFeed(){
+  const market=(document.getElementById('feedMarketFilter').dataset.val)||'ALL';
+  const sc=(document.getElementById('feedScenarioFilter').dataset.val)||'ALL';
+  const list=document.getElementById('feedList');
+  list.innerHTML='<div class="empty">加载中... Loading...</div>';
+  let records=await fetchAllRecords();
+  records=records.filter(r=>{
+    if(market!=='ALL'&&(r.market||'')!==market)return false;
+    if(sc!=='ALL'&&(r.scenario||'')!==sc)return false;
+    return true;
+  });
+  records.sort((a,b)=>(b.timestamp||'').localeCompare(a.timestamp||''));
+  if(records.length===0){list.innerHTML='<div class="empty">暂无记录 / No records yet</div>';return;}
+  list.innerHTML=records.map((r,i)=>{
+    const submitterName=(r.submitter||'').indexOf('@')>=0?r.submitter.split('@')[0]:(r.submitter||'匿名 Anonymous');
+    const scLabel={sales:'销售 Sales',deployment:'部署 Deployment',service:'客服 Service',other:'其他 Other'}[r.scenario]||r.scenario||'-';
+    let html = `<div class="record-item" style="padding:14px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:4px">
+        <b>#${records.length-i} [${scLabel}${r.outcome?' / '+escapeHtml(r.outcome):''}]</b>
+        <span style="font-size:11px;color:var(--text-3)">${r.timestamp?new Date(r.timestamp).toLocaleString():''}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-2)">${escapeHtml(r.merchant||'-')} · ${escapeHtml(r.market||'')} · ${escapeHtml(r.industry||'')} · 提交人 ${escapeHtml(submitterName)}(${escapeHtml(r.role||'')})</div>`;
+    html += fieldRow('渠道来源 Channel', r.channel);
+    html += fieldRow('当前POS系统 Current POS', r.current_pos);
+    html += fieldRow('购买状态 Purchased', r.purchased);
+    html += fieldRow('使用时长 Usage Duration', r.usage_duration);
+    html += fieldRow('喜欢的功能 Favorite Feature', r.fav_feature);
+    html += fieldRow('不喜欢/待改进 Least Favorite', r.least_feature);
+    html += fieldRow('购买原因 Buy Reason', r.buy_reason);
+    html += fieldRow('不购买原因 No-Buy Reason', r.no_buy_reason);
+    html += fieldRow('NPS', r.nps);
+    html += fieldRow('推荐理由 Why Recommend', r.rec_reason);
+    html += fieldRow('不推荐理由 Why Not Recommend', r.no_rec_reason);
+    html += fieldRow('续约意愿 Renewal', r.renewal);
+    if(r.verbatim){
+      html += `<div style="margin-top:8px;padding:10px 12px;background:#fffbe6;border:1px solid #ffe58f;border-radius:8px;font-size:13px">💬 <b>客户原声:</b> ${escapeHtml(r.verbatim)}</div>`;
+    }
+    if(r.suggestion){
+      html += `<div style="margin-top:8px;padding:10px 12px;background:#f6ffed;border:1px solid #b7eb8f;border-radius:8px;font-size:13px">💡 <b>改进建议:</b> ${escapeHtml(r.suggestion)}</div>`;
+    }
+    html += fieldRow('建议类型 Improvement Type', r.issue_type);
+    html += fieldRow('涉及方 Involved Party', r.involved_party);
+    html += fieldRow('备注 Notes', r.notes);
+    html += `</div>`;
+    return html;
+  }).join('');
+}
+document.getElementById('feedRefreshBtn').onclick=renderFeed;
+document.querySelectorAll('#feedMarketFilter .radio-item').forEach(item=>{item.onclick=()=>{document.querySelectorAll('#feedMarketFilter .radio-item').forEach(x=>x.classList.remove('selected'));item.classList.add('selected');document.getElementById('feedMarketFilter').dataset.val=item.dataset.market;renderFeed();};});
+document.querySelectorAll('#feedScenarioFilter .radio-item').forEach(item=>{item.onclick=()=>{document.querySelectorAll('#feedScenarioFilter .radio-item').forEach(x=>x.classList.remove('selected'));item.classList.add('selected');document.getElementById('feedScenarioFilter').dataset.val=item.dataset.sc;renderFeed();};});
 async function renderThankYouLeaderboard(){
   const box=document.getElementById('thankyouLeaderboard');
   box.innerHTML='<div class="empty">加载中... Loading...</div>';
