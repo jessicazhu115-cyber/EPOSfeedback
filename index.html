@@ -409,6 +409,7 @@ textarea{resize:vertical;min-height:60px}
     <div class="actions">
       <button class="btn-sm" onclick="exportCSV()">⬇️ 导出CSV</button>
       <button class="btn-sm" onclick="exportJSON()">⬇️ 导出JSON</button>
+      <button class="btn-sm" onclick="backfillIds()">🔧 补齐旧记录ID (一次性)</button>
       <button class="btn-sm" onclick="clearAll()" style="color:var(--danger)">🗑️ 清空</button>
     </div>
     <div id="recordList"><div class="empty">暂无记录 / No records yet</div></div>
@@ -746,6 +747,7 @@ updateProgressBar();
 
 function collectData(){
   return {
+    id:Date.now()+'_'+Math.random().toString(36).slice(2,10),
     timestamp:new Date().toISOString(),
     scenario:curScenario,
     outcome:gg(document.getElementById('g_outcome')),
@@ -836,6 +838,46 @@ async function fetchAllRecords(){
   }
 }
 
+async function fetchReplies(){
+  if(!SCRIPT_URL||SCRIPT_URL.indexOf('PASTE_YOUR')>=0)return [];
+  try{
+    const res=await fetch(SCRIPT_URL+'?type=replies',{method:'GET'});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    return Array.isArray(data)?data:[];
+  }catch(e){
+    console.error('读取回复失败 / Failed to fetch replies',e);
+    return [];
+  }
+}
+
+// 通用请求函数(action: set_status / add_reply / backfill_ids)
+async function postAction(payload){
+  try{
+    const res=await fetch(SCRIPT_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(payload)
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    return data;
+  }catch(e){
+    console.error('操作失败',e);
+    return {ok:false,error:String(e)};
+  }
+}
+
+// 管理员密码: 首次进入管理员模式时输入,保存在本地浏览器,之后调用受限操作会带上
+function getAdminKey(){
+  let key=localStorage.getItem('epos_admin_key')||'';
+  if(!key){
+    key=prompt('请输入管理员密码 / Enter admin password:')||'';
+    if(key)localStorage.setItem('epos_admin_key',key);
+  }
+  return key;
+}
+
 async function submitForm(){
   const d=collectData();
   if(!validate(d))return;
@@ -917,6 +959,21 @@ async function exportJSON(){
   download(JSON.stringify(records,null,2),'epos_feedback.json','application/json');
 }
 function download(content,filename,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);}
+async function backfillIds(){
+  const adminKey=getAdminKey();
+  if(!adminKey){alert('需要管理员密码才能操作 / Admin password required');return;}
+  if(!confirm('将为较早提交、还没有ID的老记录补齐ID，这个操作只需要做一次。确定继续吗？\nThis will backfill IDs for older records that don\'t have one yet. Only needs to be run once. Continue?'))return;
+  const res=await postAction({action:'backfill_ids',adminKey});
+  if(!res||!res.ok){
+    alert('操作失败，请确认管理员密码是否正确 / Failed, please check admin password\n'+((res&&res.error)||''));
+    localStorage.removeItem('epos_admin_key');
+    return;
+  }
+  alert('完成！本次共补齐 '+(res.updated||0)+' 条记录的ID / Done! '+(res.updated||0)+' record(s) backfilled.');
+  renderRecords();
+  const secB=document.getElementById('sec-B');
+  if(secB&&secB.classList.contains('active')){renderFeed();}
+}
 function clearAll(){
   alert('出于安全考虑，网页端不提供远程清空功能。\n如需删除数据，请直接打开对应的 Google 表格，手动删除行即可。\n\nFor safety, remote clearing is disabled here.\nPlease delete rows directly in the Google Sheet instead.');
 }
@@ -969,12 +1026,77 @@ function fieldRow(label, value){
   if(!value)return '';
   return `<div style="margin-top:6px"><span style="color:var(--text-3);font-size:12px">${label}:</span> <span style="font-size:13px">${escapeHtml(value)}</span></div>`;
 }
+const STATUS_META={
+  '':{label:'待处理 Pending',color:'#8c8c8c',bg:'#f5f5f5',border:'#d9d9d9'},
+  'unresolved':{label:'未解决 Unresolved',color:'#cf1322',bg:'#fff1f0',border:'#ffccc7'},
+  'following_up':{label:'跟进中 Following Up',color:'#0958d9',bg:'#e6f4ff',border:'#91caff'},
+  'resolved':{label:'已解决 Resolved',color:'#389e0d',bg:'#f6ffed',border:'#b7eb8f'}
+};
+function statusBadge(status){
+  const m=STATUS_META[status||'']||STATUS_META[''];
+  return `<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;color:${m.color};background:${m.bg};border:1px solid ${m.border}">${m.label}</span>`;
+}
+
+// 管理员状态标记控件(未解决/跟进中/已解决 + 备注选填)
+function adminStatusHtml(r){
+  const id=escapeHtml(r.id||'');
+  if(!id)return '<div style="margin-top:8px;font-size:11px;color:var(--text-3)">（该记录提交较早，暂不支持状态标记，可用"补齐旧记录ID"功能修复）</div>';
+  const status=r.status||'';
+  const mkBtn=(val,label)=>`<button class="btn-sm" data-action="set_status" data-status="${val}" data-id="${id}" style="${status===val?'background:var(--primary);color:#fff;border-color:var(--primary)':''}">${label}</button>`;
+  return `<div style="margin-top:6px">
+      ${mkBtn('unresolved','未解决 Unresolved')}
+      ${mkBtn('following_up','跟进中 Following Up')}
+      ${mkBtn('resolved','已解决 Resolved')}
+    </div>
+    <div class="form-group" style="margin-top:8px">
+      <textarea class="admin-note-input" data-id="${id}" placeholder="管理员备注(选填) / Admin note (optional)" style="min-height:50px">${escapeHtml(r.admin_note||'')}</textarea>
+    </div>
+    <button class="btn-sm" data-action="save_note" data-id="${id}">💾 保存备注 Save Note</button>`;
+}
+
+// 回复列表 + 回复表单(任何人都可以回复,需填写姓名/部门/内容)
+function repliesHtml(r, repliesById){
+  const id=r.id||'';
+  const list=(repliesById[id]||[]).slice().sort((a,b)=>(a.timestamp||'').localeCompare(b.timestamp||''));
+  let html='<div class="feedback-replies" style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)">';
+  html+='<div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:6px">💬 回复 Replies'+(list.length?' ('+list.length+')':'')+'</div>';
+  if(list.length){
+    html+='<div class="replies-list">'+list.map(rep=>`
+      <div style="background:var(--bg);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:12px">
+        <b>${escapeHtml(rep.name||'')}</b> <span style="color:var(--text-3)">(${escapeHtml(rep.department||'')})</span>
+        <span style="float:right;color:var(--text-3);font-size:11px">${rep.timestamp?new Date(rep.timestamp).toLocaleString():''}</span>
+        <div style="margin-top:4px;clear:both">${escapeHtml(rep.content||'')}</div>
+      </div>`).join('')+'</div>';
+  }
+  if(!id){
+    html+='<div style="font-size:11px;color:var(--text-3)">（该记录提交较早，暂不支持回复）</div>';
+  }else{
+    html+=`<div class="reply-form" style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+      <div style="display:flex;gap:6px">
+        <input type="text" class="reply-name" placeholder="你的姓名 Your name" style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px">
+        <input type="text" class="reply-dept" placeholder="所属部门 Department" style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px">
+      </div>
+      <textarea class="reply-content" placeholder="回复内容 Reply content" style="min-height:50px"></textarea>
+      <button class="btn-sm" data-action="submit_reply" data-id="${escapeHtml(id)}" style="align-self:flex-start">💬 提交回复 Submit Reply</button>
+    </div>`;
+  }
+  html+='</div>';
+  return html;
+}
+
 async function renderFeed(){
   const market=(document.getElementById('feedMarketFilter').dataset.val)||'ALL';
   const sc=(document.getElementById('feedScenarioFilter').dataset.val)||'ALL';
   const list=document.getElementById('feedList');
   list.innerHTML='<div class="empty">加载中... Loading...</div>';
-  let records=await fetchAllRecords();
+  let [records, replies]=await Promise.all([fetchAllRecords(), fetchReplies()]);
+  const repliesById={};
+  replies.forEach(rep=>{
+    const fid=rep.feedback_id;
+    if(!fid)return;
+    if(!repliesById[fid])repliesById[fid]=[];
+    repliesById[fid].push(rep);
+  });
   records=records.filter(r=>{
     if(market!=='ALL'&&(r.market||'')!==market)return false;
     if(sc!=='ALL'&&(r.scenario||'')!==sc)return false;
@@ -985,11 +1107,12 @@ async function renderFeed(){
   list.innerHTML=records.map((r,i)=>{
     const submitterName=(r.submitter||'').indexOf('@')>=0?r.submitter.split('@')[0]:(r.submitter||'匿名 Anonymous');
     const scLabel={sales:'销售 Sales',deployment:'部署 Deployment',service:'客服 Service',other:'其他 Other'}[r.scenario]||r.scenario||'-';
-    let html = `<div class="record-item" style="padding:14px;margin-bottom:10px">
+    let html = `<div class="record-item" data-current-status="${escapeHtml(r.status||'')}" style="padding:14px;margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:4px">
         <b>#${records.length-i} [${scLabel}${r.outcome?' / '+escapeHtml(r.outcome):''}]</b>
         <span style="font-size:11px;color:var(--text-3)">${r.timestamp?new Date(r.timestamp).toLocaleString():''}</span>
       </div>
+      <div style="margin-bottom:4px">${statusBadge(r.status)}</div>
       <div style="font-size:12px;color:var(--text-2)">${escapeHtml(r.merchant||'-')} · ${escapeHtml(r.market||'')} · ${escapeHtml(r.industry||'')} · 提交人 ${escapeHtml(submitterName)}(${escapeHtml(r.role||'')})</div>`;
     html += fieldRow('渠道来源 Channel', r.channel);
     html += fieldRow('当前POS系统 Current POS', r.current_pos);
@@ -1012,6 +1135,11 @@ async function renderFeed(){
     html += fieldRow('建议类型 Improvement Type', r.issue_type);
     html += fieldRow('涉及方 Involved Party', r.involved_party);
     html += fieldRow('备注 Notes', r.notes);
+    html += `<div class="admin-only-controls" style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);display:${isAdminModeOn()?'block':'none'}">
+      <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:4px">🔒 管理员状态标记 Admin Status</div>
+      ${adminStatusHtml(r)}
+    </div>`;
+    html += repliesHtml(r, repliesById);
     html += `</div>`;
     return html;
   }).join('');
@@ -1019,6 +1147,59 @@ async function renderFeed(){
 document.getElementById('feedRefreshBtn').onclick=renderFeed;
 document.querySelectorAll('#feedMarketFilter .radio-item').forEach(item=>{item.onclick=()=>{document.querySelectorAll('#feedMarketFilter .radio-item').forEach(x=>x.classList.remove('selected'));item.classList.add('selected');document.getElementById('feedMarketFilter').dataset.val=item.dataset.market;renderFeed();};});
 document.querySelectorAll('#feedScenarioFilter .radio-item').forEach(item=>{item.onclick=()=>{document.querySelectorAll('#feedScenarioFilter .radio-item').forEach(x=>x.classList.remove('selected'));item.classList.add('selected');document.getElementById('feedScenarioFilter').dataset.val=item.dataset.sc;renderFeed();};});
+
+// 反馈浏览页面里所有按钮的事件委托: 提交回复(任何人) / 设置状态+保存备注(仅管理员,后端二次校验)
+document.getElementById('feedList').addEventListener('click', async (e)=>{
+  const btn=e.target.closest('button[data-action]');
+  if(!btn)return;
+  const action=btn.dataset.action;
+  const id=btn.dataset.id;
+
+  if(action==='submit_reply'){
+    const card=btn.closest('.feedback-replies');
+    const name=card.querySelector('.reply-name').value.trim();
+    const department=card.querySelector('.reply-dept').value.trim();
+    const content=card.querySelector('.reply-content').value.trim();
+    if(!name||!department||!content){alert('请填写姓名、所属部门和回复内容 / Please fill in name, department and reply content');return;}
+    btn.disabled=true;
+    const res=await postAction({action:'add_reply',feedback_id:id,name,department,content});
+    if(!res||!res.ok){
+      alert('回复提交失败，请重试 / Failed to submit reply, please retry\n'+((res&&res.error)||''));
+      btn.disabled=false;return;
+    }
+    renderFeed();
+  }else if(action==='set_status'){
+    const adminKey=getAdminKey();
+    if(!adminKey){alert('需要管理员密码才能操作 / Admin password required');return;}
+    const status=btn.dataset.status;
+    const card=btn.closest('.record-item');
+    const note=card.querySelector('.admin-note-input')?card.querySelector('.admin-note-input').value.trim():'';
+    btn.disabled=true;
+    const res=await postAction({action:'set_status',adminKey,id,status,note});
+    if(!res||!res.ok){
+      alert('操作失败，请确认管理员密码是否正确 / Action failed, please check admin password\n'+((res&&res.error)||''));
+      localStorage.removeItem('epos_admin_key');
+      btn.disabled=false;return;
+    }
+    renderFeed();
+  }else if(action==='save_note'){
+    const adminKey=getAdminKey();
+    if(!adminKey){alert('需要管理员密码才能操作 / Admin password required');return;}
+    const card=btn.closest('.record-item');
+    const note=card.querySelector('.admin-note-input').value.trim();
+    const status=card.dataset.currentStatus||'';
+    btn.disabled=true;
+    const res=await postAction({action:'set_status',adminKey,id,status,note});
+    if(!res||!res.ok){
+      alert('保存失败，请确认管理员密码是否正确 / Save failed, please check admin password\n'+((res&&res.error)||''));
+      localStorage.removeItem('epos_admin_key');
+      btn.disabled=false;return;
+    }
+    renderFeed();
+  }
+});
+
+
 async function renderThankYouLeaderboard(){
   const box=document.getElementById('thankyouLeaderboard');
   box.innerHTML='<div class="empty">加载中... Loading...</div>';
@@ -1060,17 +1241,29 @@ renderRecords();renderLeaderboard();
   else if(remembered){hint.textContent='✓ 已记忆 '+remembered;}
 })();
 
+// 管理员模式全局状态,供 renderFeed() 判断是否显示状态标记控件
+window.__adminModeOn=false;
+function isAdminModeOn(){return window.__adminModeOn===true;}
+
 // 管理员入口: ?admin=1 或点击版权3次显示数据管理面板
 (function adminEntry(){
   const panel=document.getElementById('recordsPanel');
   const entry=document.getElementById('adminEntry');
+  function refreshFeedIfVisible(){
+    const secB=document.getElementById('sec-B');
+    if(secB&&secB.classList.contains('active')){renderFeed();}
+  }
   function showAdmin(){
     panel.style.display='block';
+    window.__adminModeOn=true;
     renderRecords();
+    refreshFeedIfVisible();
     entry.textContent='🔒 管理员模式 Admin Mode · 点击隐藏';
   }
   function hideAdmin(){
     panel.style.display='none';
+    window.__adminModeOn=false;
+    refreshFeedIfVisible();
     entry.textContent='© EPOS Customer Feedback';
   }
   // URL参数直接开
@@ -1087,6 +1280,7 @@ renderRecords();renderLeaderboard();
     }
   });
 })();
+
 </script>
 </body>
 </html>
