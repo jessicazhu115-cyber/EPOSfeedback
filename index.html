@@ -142,6 +142,7 @@ textarea{resize:vertical;min-height:60px}
   <div class="tabs" id="tabs">
     <button class="tab active" data-target="F">📝 反馈表单 Form</button>
     <button class="tab" data-target="B">🔍 反馈浏览 Browse Feedback</button>
+    <button class="tab" data-target="W">📊 周报 Weekly Update</button>
     <button class="tab" data-target="L">🏆 排行榜 Leaderboard</button>
   </div>
 
@@ -365,6 +366,14 @@ textarea{resize:vertical;min-height:60px}
       </div>
       <div style="margin:10px 0"><button class="btn-sm" id="feedRefreshBtn">🔄 刷新 Refresh</button></div>
       <div id="feedList"><div class="empty">点击上方"刷新"加载 / Click Refresh to load</div></div>
+    </div>
+  </div>
+
+  <div class="form-section" id="sec-W">
+    <div class="card">
+      <div class="card-title">📊 EPOS 客户反馈周报</div>
+      <div class="card-sub">按周归档 · Weekly Updates Archive</div>
+      <div id="weeklyReportsList"></div>
     </div>
   </div>
 
@@ -1288,6 +1297,110 @@ function isAdminModeOn(){return window.__adminModeOn===true;}
     }
   });
 })();
+
+// ============================================
+// 周报归档：以后每周更新，只需要在这个数组最前面加一个新对象即可，
+// 不需要改动其他任何代码。数组第一项会显示在最上面（默认展开）。
+// ============================================
+const WEEKLY_REPORTS=[
+  {
+    dateRange:'8月18日–8月26日',
+    dateRangeEn:'Aug 18–26',
+    stats:[
+      {value:'7',label:'有效反馈',labelEn:'Valid Feedback'},
+      {value:'MY 5 / SG 2',label:'市场分布',labelEn:'Market Split'},
+      {value:'6.6',label:'平均 NPS',labelEn:'Average NPS'},
+      {value:'跟进中5<br>无需解决1 · 已解决1',label:'',labelEn:''}
+    ],
+    sections:[
+      {title:'✅ 本周进展',titleEn:'This Week\'s Progress',color:'green',items:[
+        {cn:'跟进中反馈由3条增至5条',en:'Follow-up cases increased from 3 to 5'},
+        {cn:'「时光里」(MY) 销售过度承诺问题<b>已处理</b>：销售Head新峰已确认，并对相关销售完成批评教育',en:'"Time Villa" (MY): Sales over-promising issue <b>resolved</b> — Sales Head Xinfeng confirmed and the relevant salesperson has been counseled'},
+        {cn:'「Saycheese Cafe」(MY) 自定义域名问题正在确认中',en:'"Saycheese Cafe" (MY): Custom domain question is being confirmed'},
+        {cn:'「MEI TIAN」(MY) 与 BD (zhongxiao.lee)确认AI模型具体问题',en:'"MEI TIAN" (MY): BD (zhongxiao.lee) confirming specifics of the AI model issue'}
+      ]},
+      {title:'📌 主要发现',titleEn:'Key Findings',color:'plain',items:[
+        {cn:'<b>配送/集成需求集中</b>：7条里4条提到配送方案或第三方集成缺口（Grab折扣显示、Lalamove对接、会计系统集成等），建议产品评估优先级',en:'<b>Delivery/integration requests concentrated</b>: 4 of 7 submissions mention gaps in delivery options or third-party integrations (e.g. Grab discount display, Lalamove, accounting integration) — worth prioritizing for product review'},
+        {cn:'<b>支付灵活性</b>：「百米香」因不愿更换支付服务商而失单',en:'<b>Payment flexibility</b>: "Bai Mi Xiang" was lost as a deal due to unwillingness to switch payment providers'},
+        {cn:'<b>正面亮点</b>：MEI TIAN（NPS10）明确认可价格竞争力，Jian kee/夸父炸串反馈良好，有转介绍意愿',en:'<b>Positive highlight</b>: MEI TIAN (NPS 10) explicitly praised pricing competitiveness; Jian Kee and Kuafu Fried Skewers gave positive feedback and are open to referrals'}
+      ]},
+      {title:'🔧 后续建议',titleEn:'Next Steps',color:'plain',ordered:true,items:[
+        {cn:'产品侧评估配送/集成类需求优先级可否提升',en:'Product team to assess whether delivery/integration requests should be prioritized'},
+        {cn:'「Saycheese Cafe」domain问题尽快给到明确答复',en:'Provide a clear answer to "Saycheese Cafe" on the domain question soon'}
+      ]}
+    ],
+    showCTA:true
+  }
+];
+
+function renderWeeklySection(sec){
+  const colorMap={
+    green:{bg:'#f6ffed',border:'#b7eb8f',titleColor:'#389e0d'},
+    orange:{bg:'#fff2e8',border:'#ffbb96',titleColor:'#d4380d'},
+    plain:{bg:'transparent',border:'transparent',titleColor:'var(--text)'}
+  };
+  const c=colorMap[sec.color]||colorMap.plain;
+  const listTag=sec.ordered?'ol':'ul';
+  const itemsHtml=sec.items.map(it=>`<li style="margin-bottom:8px">${it.cn}<br><span style="color:var(--text-3);font-size:11px">${it.en}</span></li>`).join('');
+  const boxStyle=sec.color==='plain'
+    ?'margin-bottom:16px'
+    :`background:${c.bg};border:1px solid ${c.border};border-radius:10px;padding:14px 16px;margin-bottom:16px`;
+  return `<div style="${boxStyle}">
+    <div style="font-size:14px;font-weight:700;color:${c.titleColor};margin-bottom:2px">${sec.title}</div>
+    <div style="font-size:11px;color:var(--text-3);margin-bottom:8px">${sec.titleEn||''}</div>
+    <${listTag} style="font-size:13px;color:var(--text-2);line-height:1.7;margin:0;padding-left:20px">${itemsHtml}</${listTag}>
+  </div>`;
+}
+
+function renderWeeklyReports(){
+  const container=document.getElementById('weeklyReportsList');
+  if(!container)return;
+  container.innerHTML=WEEKLY_REPORTS.map((report,idx)=>{
+    const statsHtml=report.stats.map(s=>`
+      <div style="flex:1;min-width:100px;background:var(--primary-light);border:1px solid #bae0ff;border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:${s.value.length>6?'13px':'18px'};font-weight:800;color:var(--primary-dark);line-height:1.5">${s.value}</div>
+        ${s.label?`<div style="font-size:11px;color:var(--text-3);margin-top:2px">${s.label}${s.labelEn?' · '+s.labelEn:''}</div>`:''}
+      </div>`).join('');
+    const sectionsHtml=report.sections.map(renderWeeklySection).join('');
+    const ctaHtml=report.showCTA?`<div class="loop-banner" style="margin-bottom:0;font-size:13px;line-height:1.7">
+        📣 <b>鼓励各地区参与：</b>目前样本集中在 MY/SG，量还偏少，请各地区（尤其新加坡团队）多提交。<b>9月将颁发本轮激励</b>（创意影响奖 RM200–300、持续贡献奖 RM300），现在的每一条反馈都在为评选积累。<br>
+        <span style="font-size:11px;color:var(--text-3)"><b>Encourage participation across regions:</b> Samples are currently concentrated in MY/SG — please encourage all regions (especially Singapore) to contribute. <b>Incentives will be awarded in September</b> (Idea Impact Award RM200–300, Consistent Contribution Award RM300) — every submission now counts toward next month's evaluation.</span><br><br>
+        <span style="font-size:13px">提交入口 Submission link：<a href="?" data-goto-form="1" style="color:var(--primary-dark);font-weight:700">👉 点此去提交反馈 Click here to submit</a></span>
+      </div>`:'';
+    const isFirst=idx===0;
+    return `<div class="weekly-report-card" style="${idx>0?'margin-top:20px;padding-top:20px;border-top:2px dashed var(--border)':''}">
+      <div class="weekly-report-header" data-toggle="${idx}" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-bottom:${isFirst?'14px':'0'}">
+        <div>
+          <div style="font-weight:700;font-size:14px;color:var(--text)">🗓️ ${report.dateRange}</div>
+          <div style="font-size:11px;color:var(--text-3)">${report.dateRangeEn||''}</div>
+        </div>
+        <span style="font-size:12px;color:var(--primary)">${isFirst?'收起 Collapse ▲':'展开 Expand ▼'}</span>
+      </div>
+      <div class="weekly-report-body" data-body="${idx}" style="display:${isFirst?'block':'none'}">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">${statsHtml}</div>
+        ${sectionsHtml}
+        ${ctaHtml}
+      </div>
+    </div>`;
+  }).join('');
+
+  container.querySelectorAll('.weekly-report-header').forEach(h=>{
+    h.addEventListener('click',()=>{
+      const i=h.dataset.toggle;
+      const body=container.querySelector(`[data-body="${i}"]`);
+      const isOpen=body.style.display==='block';
+      body.style.display=isOpen?'none':'block';
+      h.querySelector('span').textContent=isOpen?'展开 Expand ▼':'收起 Collapse ▲';
+    });
+  });
+  container.querySelectorAll('[data-goto-form]').forEach(a=>{
+    a.addEventListener('click',(e)=>{
+      e.preventDefault();
+      document.querySelector('.tab[data-target="F"]').click();
+    });
+  });
+}
+renderWeeklyReports();
 
 </script>
 </body>
