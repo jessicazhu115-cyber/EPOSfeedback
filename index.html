@@ -142,7 +142,7 @@ textarea{resize:vertical;min-height:60px}
   <div class="tabs" id="tabs">
     <button class="tab active" data-target="F">📝 反馈表单 Form</button>
     <button class="tab" data-target="B">🔍 反馈浏览 Browse Feedback</button>
-    <button class="tab" data-target="W">📊 周报 Weekly Update</button>
+    <button class="tab" data-target="W" id="weeklyTabBtn" style="display:none">📊 周报 Weekly Update</button>
     <button class="tab" data-target="L">🏆 排行榜 Leaderboard</button>
   </div>
 
@@ -1276,12 +1276,20 @@ function isAdminModeOn(){return window.__adminModeOn===true;}
     renderRecords();
     refreshFeedIfVisible();
     entry.textContent='🔒 管理员模式 Admin Mode · 点击隐藏';
+    const weeklyBtn=document.getElementById('weeklyTabBtn');
+    if(weeklyBtn)weeklyBtn.style.display='';
   }
   function hideAdmin(){
     panel.style.display='none';
     window.__adminModeOn=false;
     refreshFeedIfVisible();
     entry.textContent='© EPOS Customer Feedback';
+    const weeklyBtn=document.getElementById('weeklyTabBtn');
+    if(weeklyBtn)weeklyBtn.style.display='none';
+    // 如果当前正停留在周报页，管理员模式关闭后自动跳回表单页
+    if(weeklyBtn&&weeklyBtn.classList.contains('active')){
+      document.querySelector('.tab[data-target="F"]').click();
+    }
   }
   // URL参数直接开
   if(new URLSearchParams(window.location.search).get('admin')==='1'){showAdmin();}
